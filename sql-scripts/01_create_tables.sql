@@ -23,8 +23,8 @@ CREATE TABLE Members (
     email_id VARCHAR(150) NOT NULL UNIQUE,
     Phone_no VARCHAR(20),
     account_status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    date_of_birth DATE,
-    joining_date DATE NOT NULL
+    date_of_birth DATE NOT NULL,
+    joining_date DATE NOT NULL DEFAULT (CURRENT_DATE)
 );
 
 CREATE TABLE Trainers (
@@ -33,10 +33,9 @@ CREATE TABLE Trainers (
     last_name VARCHAR(100) NOT NULL,
     email_id VARCHAR(150) NOT NULL UNIQUE,
     phone_no VARCHAR(20),
-    years_of_experience INT NOT NULL CHECK (years_of_experience >= 0),
-    certification VARCHAR(100),
-    qualification VARCHAR(100),
-    location VARCHAR(100),
+    city VARCHAR(100),
+    total_experience_years INT NOT NULL CHECK (total_experience_years > 0),
+    hired_date DATE NOT NULL DEFAULT (CURRENT_DATE),
     account_status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
 );
 
@@ -46,7 +45,7 @@ CREATE TABLE Subscription_Plans (
     duration_in_months INT NOT NULL CHECK (duration_in_months > 0),
     plan_price DECIMAL(15, 2) NOT NULL CHECK (plan_price >= 0),
     plan_description VARCHAR(250),
-    plan_status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+    plan_status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE'
 );
 
 CREATE TABLE Member_Subscriptions (
@@ -57,6 +56,7 @@ CREATE TABLE Member_Subscriptions (
     end_date DATE NOT NULL,
     subscription_status ENUM('ACTIVE', 'EXPIRED', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
     FOREIGN KEY (member_id) REFERENCES Members (member_id),
+    FOREIGN KEY (plan_id) REFERENCES Subscription_Plans (plan_id),
     CHECK (start_date <= end_date)
 );
 
@@ -79,12 +79,18 @@ CREATE TABLE Service_Types (
     service_type_id INT AUTO_INCREMENT PRIMARY KEY,
     service_type_name VARCHAR(100) NOT NULL UNIQUE,
     service_type_description VARCHAR(250) NOT NULL,
-    max_participants INT NOT NULL CHECK (
-        max_participants > 0
-        AND max_participants <= 50
-    ),
     service_mode ENUM('GROUP', 'PERSONAL') NOT NULL DEFAULT 'GROUP',
-    service_type_status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE'
+    max_participants INT NOT NULL,
+    service_type_status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+    CHECK (
+        service_mode = 'PERSONAL'
+        AND max_participants = 1
+        OR (
+            service_mode = 'GROUP'
+            AND max_participants > 1
+            AND max_participants <= 20
+        )
+    )
 );
 
 CREATE TABLE Sessions (
