@@ -67,8 +67,10 @@ CREATE TABLE Service_Types (
     max_participants INT NOT NULL,
     service_type_status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
     CHECK (
-        service_mode = 'PERSONAL'
-        AND max_participants = 1
+        (
+            service_mode = 'PERSONAL'
+            AND max_participants = 1
+        )
         OR (
             service_mode = 'GROUP'
             AND max_participants > 1
@@ -83,18 +85,21 @@ CREATE TABLE Sessions (
     trainer_id INT NOT NULL,
     session_date DATE NOT NULL,
     start_time TIME NOT NULL,
-    end_time TIME NOT NULL,
+    duration_in_minutes INT NOT NULL DEFAULT 30 CHECK (duration_in_minutes >= 30),
     session_mode ENUM('ONLINE', 'OFFLINE') NOT NULL DEFAULT 'OFFLINE',
-    session_location VARCHAR(100),
+    session_room VARCHAR(100),
     session_status ENUM('SCHEDULED', 'COMPLETED', 'CANCELLED') NOT NULL DEFAULT 'SCHEDULED',
     FOREIGN KEY (service_type_id) REFERENCES Service_Types (service_type_id),
     FOREIGN KEY (trainer_id) REFERENCES Trainers (trainer_id),
-    CHECK (start_time < end_time),
     CHECK (
-        session_mode = 'OFFLINE'
-        AND session_location IS NULL
-        OR session_mode = 'ONLINE'
-        AND session_location IS NOT NULL
+        (
+            session_mode = 'OFFLINE'
+            AND session_room IS NULL
+        )
+        OR (
+            session_mode = 'ONLINE'
+            AND session_room IS NOT NULL
+        )
     )
 );
 
