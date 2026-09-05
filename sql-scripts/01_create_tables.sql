@@ -40,11 +40,9 @@ CREATE TABLE Member_Subscriptions (
     member_id INT NOT NULL,
     plan_id INT NOT NULL,
     start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
     subscription_status ENUM('ACTIVE', 'EXPIRED', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
     FOREIGN KEY (member_id) REFERENCES Members (member_id),
-    FOREIGN KEY (plan_id) REFERENCES Subscription_Plans (plan_id),
-    CHECK (start_date <= end_date)
+    FOREIGN KEY (plan_id) REFERENCES Subscription_Plans (plan_id)
 );
 
 CREATE TABLE Payments (
@@ -114,7 +112,8 @@ CREATE TABLE Bookings (
     booking_cancelled_time DATETIME,
     booking_status ENUM ('BOOKED','CANCELLED') NOT NULL DEFAULT 'BOOKED',
     FOREIGN KEY(member_id) REFERENCES Members (member_id),
-    FOREIGN KEY (session_id) REFERENCES Sessions (session_id) 
+    FOREIGN KEY (session_id) REFERENCES Sessions (session_id),
+    UNIQUE (member_id, session_id)  -- A member cannot have multiple bookings for the same session 
 );
 
 
