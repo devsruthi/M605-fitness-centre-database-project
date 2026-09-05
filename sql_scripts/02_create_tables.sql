@@ -5,7 +5,7 @@ CREATE TABLE Members (
     last_name VARCHAR(100) NOT NULL,
     email_id VARCHAR(150) NOT NULL UNIQUE,
     password VARCHAR(50) NOT NULL,
-    Phone_no VARCHAR(20),
+    phone_no VARCHAR(20),
     date_of_birth DATE NOT NULL,
     account_status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
     joining_date DATE NOT NULL DEFAULT (CURRENT_DATE)
@@ -25,11 +25,14 @@ CREATE TABLE Trainers (
 
 CREATE TABLE Subscription_Plans (
     plan_id INT AUTO_INCREMENT PRIMARY KEY,
-    plan_name VARCHAR(170) NOT NULL,
+    plan_name VARCHAR(170) NOT NULL UNIQUE,
     duration_in_months INT NOT NULL CHECK (duration_in_months > 0),
     plan_price DECIMAL(15, 2) NOT NULL CHECK (plan_price >= 0),
     plan_description VARCHAR(250),
-    plan_status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE'
+    plan_status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+    group_classes_access BOOLEAN NOT NULL DEFAULT TRUE,
+    personal_training_acccess BOOLEAN NOT NULL DEFAULT FALSE,
+    exclusive_services BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE Member_Subscriptions (
@@ -37,11 +40,9 @@ CREATE TABLE Member_Subscriptions (
     member_id INT NOT NULL,
     plan_id INT NOT NULL,
     start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
     subscription_status ENUM('ACTIVE', 'EXPIRED', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
     FOREIGN KEY (member_id) REFERENCES Members (member_id),
-    FOREIGN KEY (plan_id) REFERENCES Subscription_Plans (plan_id),
-    CHECK (start_date <= end_date)
+    FOREIGN KEY (plan_id) REFERENCES Subscription_Plans (plan_id)
 );
 
 CREATE TABLE Payments (
@@ -94,11 +95,11 @@ CREATE TABLE Sessions (
     CHECK (
         (
             session_mode = 'OFFLINE'
-            AND session_room IS NULL
+            AND session_room IS NOT NULL
         )
         OR (
             session_mode = 'ONLINE'
-            AND session_room IS NOT NULL
+            AND session_room IS NULL
         )
     )
 );
@@ -111,7 +112,8 @@ CREATE TABLE Bookings (
     booking_cancelled_time DATETIME,
     booking_status ENUM ('BOOKED','CANCELLED') NOT NULL DEFAULT 'BOOKED',
     FOREIGN KEY(member_id) REFERENCES Members (member_id),
-    FOREIGN KEY (session_id) REFERENCES Sessions (session_id) 
+    FOREIGN KEY (session_id) REFERENCES Sessions (session_id),
+    UNIQUE (member_id, session_id)  -- A member cannot have multiple bookings for the same session 
 );
 
 
