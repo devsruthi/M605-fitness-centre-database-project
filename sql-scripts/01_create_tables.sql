@@ -30,8 +30,8 @@ CREATE TABLE Subscription_Plans (
     plan_price DECIMAL(15, 2) NOT NULL CHECK (plan_price >= 0),
     plan_description VARCHAR(250),
     plan_status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
-    personal_training_acccess BOOLEAN NOT NULL DEFAULT FALSE,
     group_classes_access BOOLEAN NOT NULL DEFAULT TRUE,
+    personal_training_acccess BOOLEAN NOT NULL DEFAULT FALSE,
     exclusive_services BOOLEAN NOT NULL DEFAULT FALSE
 );
 
