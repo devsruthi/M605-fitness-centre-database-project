@@ -5,7 +5,7 @@ CREATE TABLE Members (
     last_name VARCHAR(100) NOT NULL,
     email_id VARCHAR(150) NOT NULL UNIQUE,
     password VARCHAR(50) NOT NULL,
-    Phone_no VARCHAR(20),
+    phone_no VARCHAR(20),
     date_of_birth DATE NOT NULL,
     account_status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
     joining_date DATE NOT NULL DEFAULT (CURRENT_DATE)
@@ -25,11 +25,14 @@ CREATE TABLE Trainers (
 
 CREATE TABLE Subscription_Plans (
     plan_id INT AUTO_INCREMENT PRIMARY KEY,
-    plan_name VARCHAR(170) NOT NULL,
+    plan_name VARCHAR(170) NOT NULL UNIQUE,
     duration_in_months INT NOT NULL CHECK (duration_in_months > 0),
     plan_price DECIMAL(15, 2) NOT NULL CHECK (plan_price >= 0),
     plan_description VARCHAR(250),
-    plan_status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE'
+    plan_status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+    personal_training_acccess BOOLEAN NOT NULL DEFAULT FALSE,
+    group_classes_access BOOLEAN NOT NULL DEFAULT TRUE,
+    exclusive_services BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE Member_Subscriptions (
