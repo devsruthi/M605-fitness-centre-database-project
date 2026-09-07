@@ -1,5 +1,4 @@
 
-
 -- TESTING THE PROCEDURES
 -- *****************************
 
@@ -60,7 +59,7 @@ END //
 DELIMITER ;
 
 
---3) View Member Details
+-- 3) View Member Details
 -- -----------------------
 
 DELIMITER //
@@ -80,7 +79,7 @@ END //
 DELIMITER ;
 
 
---4) Session Booking : Member trying to book a specific session
+-- 4) Session Booking : Member trying to book a specific session
 -- --------------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE BookSession (
