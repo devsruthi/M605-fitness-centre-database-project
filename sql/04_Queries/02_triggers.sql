@@ -20,8 +20,21 @@ END //
 DELIMITER ;
 
 
+-- 2) Log member details after insertion
+-- ------------------------------------------------
+DELIMITER // 
+CREATE TRIGGER log_member_details_insertion 
+AFTER INSERT ON Members 
+FOR EACH ROW 
+BEGIN 
+INSERT INTO Member_Log (member_id, first_name, last_name, email_id, phone_no, date_of_birth, account_status, joining_date) 
+VALUES (NEW.member_id, NEW.first_name, NEW.last_name, NEW.email_id, NEW.phone_no, NEW.date_of_birth, NEW.account_status, NEW.joining_date); 
+END // 
+DELIMITER ;
 
--- 2) Prevent session booking - only memebers with active subscription can book sessions
+
+
+-- 3) Prevent session booking - only memebers with active subscription can book sessions
 -- ------------------------------------------------------------------------------
 
 DELIMITER //
@@ -44,7 +57,7 @@ DELIMITER ;
 
 
 
--- 3) Prevent a member from booking the same session more than once
+-- 4) Prevent a member from booking the same session more than once
 -- ------------------------------------------------------------------------------------------------
 
 DELIMITER //
@@ -70,7 +83,7 @@ DELIMITER ;
 
 
 
--- 4) Prevent session booking - when session reaches maximum capacity, no more bookings are allowed
+-- 5) Prevent session booking - when session reaches maximum capacity, no more bookings are allowed
 -- ------------------------------------------------------------------------------------------------
 
 DELIMITER //
@@ -99,7 +112,7 @@ DELIMITER ;
 
 
 
--- 5) Prevent PT session booking - when the Member's subscription plan does not include PT service access
+-- 6) Prevent PT session booking - when the Member's subscription plan does not include PT service access
 -- ------------------------------------------------------------------------------------------------
 
 DELIMITER //
