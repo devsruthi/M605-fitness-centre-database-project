@@ -1,4 +1,3 @@
-
 CREATE TABLE Members (
     member_id INT AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
@@ -35,10 +34,19 @@ CREATE TABLE Subscription_Plans (
     exclusive_services BOOLEAN NOT NULL DEFAULT FALSE
 );
 
-CREATE TABLE Payments (
-    payment_id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE Member_Subscriptions (
+    subscription_id INT AUTO_INCREMENT PRIMARY KEY,
     member_id INT NOT NULL,
     plan_id INT NOT NULL,
+    start_date DATE NOT NULL,
+    subscription_status ENUM('PENDING', 'ACTIVE', 'EXPIRED', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
+    FOREIGN KEY (member_id) REFERENCES Members (member_id),
+    FOREIGN KEY (plan_id) REFERENCES Subscription_Plans (plan_id)
+);
+
+CREATE TABLE Payments (
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,
+    subscription_id INT NOT NULL,
     payment_date DATE NOT NULL,
     payment_amount DECIMAL(15, 2) NOT NULL CHECK (payment_amount >= 0),
     payment_method ENUM(
@@ -48,23 +56,8 @@ CREATE TABLE Payments (
         'BANK_TRANSFER'
     ) NOT NULL,
     payment_status ENUM('SUCCESS', 'FAILED', 'PENDING') NOT NULL DEFAULT 'PENDING',
-    FOREIGN KEY (member_id) REFERENCES Members (member_id),
-    FOREIGN KEY (plan_id) REFERENCES Subscription_Plans (plan_id)
+    FOREIGN KEY (subscription_id) REFERENCES Member_Subscriptions (subscription_id)
 );
-
-CREATE TABLE Member_Subscriptions (
-    subscription_id INT AUTO_INCREMENT PRIMARY KEY,
-    member_id INT NOT NULL,
-    plan_id INT NOT NULL,
-    payment_id INT NOT NULL,
-    start_date DATE NOT NULL,
-    subscription_status ENUM('ACTIVE', 'EXPIRED', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
-    FOREIGN KEY (member_id) REFERENCES Members (member_id),
-    FOREIGN KEY (plan_id) REFERENCES Subscription_Plans (plan_id),
-    FOREIGN KEY (payment_id) REFERENCES Payments (payment_id),
-    UNIQUE (payment_id)
-);
-
 
 CREATE TABLE Service_Types (
     service_type_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -121,9 +114,6 @@ CREATE TABLE Bookings (
     FOREIGN KEY (session_id) REFERENCES Sessions (session_id),
     UNIQUE (member_id, session_id)  -- A member cannot have multiple bookings for the same session 
 );
-
-
-
 
 
 
