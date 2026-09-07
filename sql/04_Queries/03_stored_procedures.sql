@@ -1,31 +1,55 @@
+-- TESTING THE PROCEDURES - Member Working Flow
+-- **********************************************
 
--- TESTING THE PROCEDURES
--- *****************************
+-- 1) Member Registration
+-- 2) Member Login
+-- 3) View Member Details
+-- 4) Add Subscription Plan
+-- 5) Purchase Subscription Plan
+-- 6) Book Session
 
+SET @member_id = NULL;
+SET @subscription_id = NULL;
 
 CALL MemberRegistration('Member1', 'Member1', 
 'member1@example.com', 'password123', '1234567890', '1990-01-01');
 
-CALL MemberLogin('member1@example.com', 'password123');
+CALL MemberLogin('member1@example.com', 'password123', @member_id);
 
-CALL ViewMemberDetails('member1@example.com');
+CALL ViewMemberDetails(@member_id);
+-- ---ViewMemberDetails-----(member_id)
 
-CALL BookSession(1, 1);
+SELECT * FROM Subscription_Plans;
 
+CALL AddSubscriptionPlan(@member_id, 1, @subscription_id);
+-- --(member_id, plan_id, subscription_id (output parameter))
+
+SELECT @subscription_id;
+
+CALL PurchaseSubscriptionPlan(@subscription_id, 'CREDIT_CARD');
+-- ----(subscription_id, payment_method)
+
+SELECT * FROM Sessions;
+
+CALL BookSession(@member_id, 1);
+-- --(member_id, session_id)
+
+
+-- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+ -- PROCEDURES
+ -- **********
 
  -- 1) Member Registration
  -- -----------------------
  
  DELIMITER //
  CREATE PROCEDURE MemberRegistration (
-   IN p_first_name VARCHAR(100),
-   IN p_last_name VARCHAR(100),
-   IN p_email_id VARCHAR(150),
-   IN p_password VARCHAR(50),
-   IN p_phone_no VARCHAR(20),
-   IN p_date_of_birth DATE
+   IN p_first_name VARCHAR(100),IN p_last_name VARCHAR(100),
+   IN p_email_id VARCHAR(150),IN p_password VARCHAR(50),
+   IN p_phone_no VARCHAR(20),IN p_date_of_birth DATE
  )
- BEGIN
+  BEGIN
      IF EXISTS (SELECT 1 FROM Members WHERE email_id = p_email_id)
      THEN
      SIGNAL SQLSTATE '45000'
@@ -33,8 +57,8 @@ CALL BookSession(1, 1);
      END IF;
     INSERT INTO Members (first_name, last_name, email_id, password, phone_no, date_of_birth)
     VALUES (p_first_name, p_last_name, p_email_id, p_password, p_phone_no, p_date_of_birth);
-    SELECT CONCAT(p_first_name, ' ', p_last_name) AS member_name, 'Registration successful' AS message;
- END //
+    SELECT 'Registration successful' AS message,CONCAT(p_first_name, ' ', p_last_name) AS member_name;
+  END //
 DELIMITER ;
 
 
@@ -43,19 +67,20 @@ DELIMITER ;
 
 DELIMITER //
 CREATE PROCEDURE MemberLogin (
-   IN p_email_id VARCHAR(150),
-   IN p_password VARCHAR(50)
+   IN p_email_id VARCHAR(150),IN p_password VARCHAR(50),OUT p_member_id INT
 )
-BEGIN
+ BEGIN
+    SET p_member_id = NULL;
     IF EXISTS (SELECT 1 FROM Members WHERE email_id = p_email_id AND password = p_password)
     THEN
-    SELECT 'Login successful' AS message, 'Welcome back, ' AS welcome_message, 
-    (SELECT first_name FROM Members WHERE email_id = p_email_id) AS member_name;
+    SET p_member_id = (SELECT member_id FROM Members WHERE email_id = p_email_id AND password = p_password);
+    SELECT member_id, 'Login successful, Welcome back' AS message, 
+    CONCAT (first_name, ' ', last_name) AS member_name;
     ELSE
     SIGNAL SQLSTATE '45000'
     SET MESSAGE_TEXT = 'Invalid email ID or password!';
     END IF;
-END //
+ END //
 DELIMITER ;
 
 
@@ -64,29 +89,120 @@ DELIMITER ;
 
 DELIMITER //
 CREATE PROCEDURE ViewMemberDetails (
-   IN p_email_id VARCHAR(150)
+   IN p_member_id INT
 )
-BEGIN
-    SELECT first_name, last_name, email_id, phone_no, date_of_birth 
-    FROM Members 
-    WHERE email_id = p_email_id;
-    SELECT 'Member details retrieved successfully' AS message;
+ BEGIN
+    IF EXISTS (SELECT 1 FROM Members WHERE member_id = p_member_id) THEN
+    SELECT first_name, last_name, email_id, phone_no, date_of_birth
+    FROM Members
+    WHERE member_id = p_member_id;
+    SELECT member_id, CONCAT (first_name, ' ', last_name) AS member_name, 
+    email_id, phone_no, date_of_birth, account_status,'Success' AS message;
     ELSE
     SIGNAL SQLSTATE '45000'
     SET MESSAGE_TEXT = 'Member not found!';
     END IF;
-END //
+ END //
 DELIMITER ;
 
 
--- 4) Session Booking : Member trying to book a specific session
+-- 4) Add a subscription plan
+-- ---------------------------------
+
+DELIMITER //
+CREATE PROCEDURE AddSubscriptionPlan (
+    IN p_member_id INT,IN p_plan_id INT,OUT p_subscription_id INT
+)
+  BEGIN
+     SET p_subscription_id = NULL;
+
+    IF NOT EXISTS (SELECT 1 FROM Members WHERE member_id = p_member_id AND account_status = 'ACTIVE')
+    THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Member not found or not active!';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Subscription_Plans WHERE plan_id = p_plan_id AND plan_status = 'ACTIVE')
+    THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Subscription plan not found or not active!';
+    END IF;
+    IF EXISTS (SELECT 1 FROM Member_Subscriptions WHERE member_id = p_member_id 
+    AND plan_id = p_plan_id AND subscription_status in ('PENDING', 'ACTIVE'))
+    THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'You have already chosen this subscription plan and it is pending/active!';
+    END IF;
+    INSERT INTO Member_Subscriptions (member_id, plan_id, start_date, subscription_status)
+    VALUES (p_member_id, p_plan_id, null, 'PENDING');
+
+    SET p_subscription_id = LAST_INSERT_ID();
+
+    SELECT p_member_id AS member_id,p_subscription_id AS subscription_id,
+        p_plan_id AS plan_id,'PENDING' AS subscription_status,
+        (SELECT plan_name FROM Subscription_Plans WHERE plan_id = p_plan_id) AS plan_name,
+        'subscription plan added to cart. Complete payment to activate.' AS success_message;
+ END //
+DELIMITER ;
+
+
+-- 5) Purchase the selected subscription plan
+-- --------------------------------------------
+DELIMITER //
+CREATE PROCEDURE PurchaseSubscriptionPlan (
+    IN p_subscription_id INT,
+    IN p_payment_method ENUM('CREDIT_CARD', 'DEBIT_CARD', 'PAYPAL', 'BANK_TRANSFER'))
+
+ BEGIN
+     DECLARE l_payment_status VARCHAR(10);
+     DECLARE l_plan_price DECIMAL(15, 2);
+
+    IF EXISTS (SELECT 1 FROM Member_Subscriptions WHERE subscription_id = p_subscription_id AND subscription_status = 'ACTIVE')
+    THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Subscription is already active.';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Member_Subscriptions WHERE subscription_id = p_subscription_id AND subscription_status = 'PENDING')
+    THEN
+    SIGNAL SQLSTATE '45000' 
+    SET MESSAGE_TEXT = 'You have not chosen the subscription plan!';
+    END IF;
+
+    -- -- getting plan price autmatcially, not taking from user
+  SELECT sp.plan_price INTO l_plan_price FROM Member_Subscriptions ms JOIN Subscription_Plans sp ON sp.plan_id = ms.plan_id
+  WHERE ms.subscription_id = p_subscription_id;
+
+    
+    INSERT INTO Payments (subscription_id, payment_date, payment_amount, payment_method, payment_status)
+    VALUES (p_subscription_id, CURDATE(), l_plan_price, p_payment_method, 'SUCCESS');
+
+    SET l_payment_id = LAST_INSERT_ID();
+
+    SELECT payment_status INTO l_payment_status FROM Payments WHERE subscription_id = p_subscription_id;
+
+    IF l_payment_status = 'SUCCESS'
+    -- updating subscrition status from PENDING -> ACTIVE
+    THEN
+    UPDATE Member_Subscriptions
+    SET subscription_status = 'ACTIVE', start_date = CURDATE()
+    WHERE subscription_id = p_subscription_id;
+    SELECT  l_payment_id AS payment_id, subscription_id,'Congrats,Purchase successful, your subscription is active now.' AS success_message;
+    ELSE
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Payment failed,Please try again!';
+    UPDATE Member_Subscriptions
+    SET subscription_status = 'FAILED'
+    WHERE subscription_id = p_subscription_id;
+    END IF;
+ END //
+DELIMITER ;
+
+
+-- 5) Session Booking : Member trying to book a specific session
 -- --------------------------------------------------------------
 DELIMITER //
-CREATE PROCEDURE BookSession (
-    IN p_member_id INT,
-    IN p_session_id INT
-)
-BEGIN
+CREATE PROCEDURE BookSession (IN p_member_id INT,IN p_session_id INT)
+
+ BEGIN
     IF NOT EXISTS (SELECT 1 FROM Member_Subscriptions WHERE member_id = p_member_id AND subscription_status = 'ACTIVE')
     THEN
     SIGNAL SQLSTATE '45000'
@@ -105,8 +221,8 @@ BEGIN
     END IF;
     INSERT INTO Bookings (member_id, session_id)
     VALUES (p_member_id, p_session_id);
-    SELECT 'Congrats, you have successfully booked the session' AS success_message;
-END //
+    SELECT p_session_id AS session_id, 'Congrats, you have successfully booked the session' AS success_message;
+ END //
 DELIMITER ;
 
  
