@@ -1,4 +1,3 @@
-
 CREATE TABLE Members (
     member_id INT AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
@@ -40,7 +39,7 @@ CREATE TABLE Member_Subscriptions (
     member_id INT NOT NULL,
     plan_id INT NOT NULL,
     start_date DATE NOT NULL,
-    subscription_status ENUM('ACTIVE', 'EXPIRED', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
+    subscription_status ENUM('PENDING', 'ACTIVE', 'EXPIRED', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
     FOREIGN KEY (member_id) REFERENCES Members (member_id),
     FOREIGN KEY (plan_id) REFERENCES Subscription_Plans (plan_id)
 );
@@ -115,9 +114,6 @@ CREATE TABLE Bookings (
     FOREIGN KEY (session_id) REFERENCES Sessions (session_id),
     UNIQUE (member_id, session_id)  -- A member cannot have multiple bookings for the same session 
 );
-
-
-
 
 
 
