@@ -136,7 +136,7 @@ BEGIN
         ON ms.plan_id = sp.plan_id
         WHERE ms.member_id = NEW.member_id 
         AND ms.subscription_status = 'ACTIVE' AND plan_status = 'ACTIVE'
-        AND sp.personal_training_acccess = TRUE
+        AND sp.personal_training_access = TRUE
         )
      THEN
         SIGNAL SQLSTATE '45000'
