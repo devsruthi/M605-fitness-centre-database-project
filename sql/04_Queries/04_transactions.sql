@@ -34,7 +34,7 @@
   WHERE subscription_id = @subscription_id;
 
   COMMIT;
- -- ===============================================================================
+ -- ================================== END =============================================
 
  -- * TESTING THE TRANSACTION *
  -- ---------------------------------
@@ -64,7 +64,6 @@ FROM Payments WHERE subscription_id = @subscription_id;   -- Query 2
 
 -- 4) EXECUTE TRANSACTION & Execute Queries 1& 2
 
-
 -- ----------------------------------------------------------------------------------------------------------------------------------------------
 
  -- 2) CANCELLING A SESSION  BY ADMIN/TRAINER
@@ -92,7 +91,7 @@ FROM Payments WHERE subscription_id = @subscription_id;   -- Query 2
   WHERE session_id = @session_id;
 
   COMMIT;
--- =============================================================================
+-- ================================ END =============================================
 
   -- * TESTING THE TRANSACTION *
 -- -------------------------------
