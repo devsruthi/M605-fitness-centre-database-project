@@ -1,44 +1,57 @@
--- TESTING THE PROCEDURES - Member Working Flow
--- **********************************************
 
+-- ======================== STORED PROCEDURES ====================================
+
+-- MEMBER WORKING FLOW
+-- -------------------------------
 -- 1) Member Registration
 -- 2) Member Login
 -- 3) View Member Details
 -- 4) Add Subscription Plan
 -- 5) Purchase Subscription Plan
+-- 6) View Upcoming Sessions
 -- 6) Book Session
+
+--  ADMIN WORKING FLOW
+-- -------------------------------
+-- 1) Cancel Session (by admin)
+
+-- =========================== TESTING THE PROCEDURES ================================
 
 SET @member_id = NULL;
 SET @subscription_id = NULL;
+SET @plan_id = 2; -- premium plan;
 
+
+-- Member Registration
 CALL MemberRegistration('Member1', 'Member1', 
 'member1@example.com', 'password123', '1234567890', '1990-01-01');
 
+-- Member Login
 CALL MemberLogin('member1@example.com', 'password123', @member_id);
 
+-- View Member Details
 CALL ViewMemberDetails(@member_id);
--- ---ViewMemberDetails-----(member_id)
 
+
+-- Add Subscription Plan
 SELECT * FROM Subscription_Plans;
 
-CALL AddSubscriptionPlan(@member_id, 1, @subscription_id);
--- --(member_id, plan_id, subscription_id (output parameter))
+CALL AddSubscription(@member_id, @plan_id, @subscription_id); -- (member_id, plan_id, subscription_id (output parameter))
 
 SELECT @subscription_id;
 
-CALL PurchaseSubscriptionPlan(@subscription_id, 'CREDIT_CARD');
--- ----(subscription_id, payment_method)
+-- Purchase Subscription Plan
+CALL PurchaseSubscriptionPlan(@subscription_id, 'CREDIT_CARD'); -- (subscription_id, payment_method)
 
-SELECT * FROM Sessions;
+-- View All Upcoming Sessions
+CALL ViewUpcomingSessions();
 
-CALL BookSession(@member_id, 1);
--- --(member_id, session_id)
+-- Book Session
+CALL BookSession(@member_id, 1); -- (member_id, session_id)
 
 
--- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+-- =============================== PROCEDURES IMPLEMENTATION =====================================================================================
 
- -- PROCEDURES
- -- **********
 
  -- 1) Member Registration
  -- -----------------------
@@ -110,7 +123,7 @@ DELIMITER ;
 -- ---------------------------------
 
 DELIMITER //
-CREATE PROCEDURE AddSubscriptionPlan (
+CREATE PROCEDURE AddSubscription (
     IN p_member_id INT,IN p_plan_id INT,OUT p_subscription_id INT
 )
   BEGIN
@@ -153,8 +166,10 @@ CREATE PROCEDURE PurchaseSubscriptionPlan (
     IN p_payment_method ENUM('CREDIT_CARD', 'DEBIT_CARD', 'PAYPAL', 'BANK_TRANSFER'))
 
  BEGIN
+
      DECLARE l_payment_status VARCHAR(10);
      DECLARE l_plan_price DECIMAL(15, 2);
+     DECLARE l_payment_id INT;
 
     IF EXISTS (SELECT 1 FROM Member_Subscriptions WHERE subscription_id = p_subscription_id AND subscription_status = 'ACTIVE')
     THEN
@@ -168,31 +183,46 @@ CREATE PROCEDURE PurchaseSubscriptionPlan (
     END IF;
 
     -- -- getting plan price autmatcially, not taking from user
-  SELECT sp.plan_price INTO l_plan_price FROM Member_Subscriptions ms JOIN Subscription_Plans sp ON sp.plan_id = ms.plan_id
+  SELECT sp.plan_price INTO l_plan_price FROM Member_Subscriptions ms 
+  JOIN Subscription_Plans sp ON sp.plan_id = ms.plan_id
   WHERE ms.subscription_id = p_subscription_id;
 
-    
+    START TRANSACTION; -- ------
+
+    -- online transaction happening.....
+    -- assuming got status from payment gateway (BANK/CARDD etc).....
+    SET payment_status_from_gateway = 'SUCCESS';
+
     INSERT INTO Payments (subscription_id, payment_date, payment_amount, payment_method, payment_status)
-    VALUES (p_subscription_id, CURDATE(), l_plan_price, p_payment_method, 'SUCCESS');
+    VALUES (p_subscription_id, CURDATE(), l_plan_price, p_payment_method, payment_status_from_gateway);
 
     SET l_payment_id = LAST_INSERT_ID();
 
-    SELECT payment_status INTO l_payment_status FROM Payments WHERE subscription_id = p_subscription_id;
-
-    IF l_payment_status = 'SUCCESS'
+   IF payment_status_from_gateway = 'SUCCESS'
     -- updating subscrition status from PENDING -> ACTIVE
     THEN
     UPDATE Member_Subscriptions
     SET subscription_status = 'ACTIVE', start_date = CURDATE()
     WHERE subscription_id = p_subscription_id;
-    SELECT  l_payment_id AS payment_id, subscription_id,'Congrats,Purchase successful, your subscription is active now.' AS success_message;
-    ELSE
+    COMMIT;
+    SELECT  l_payment_id AS payment_id, p_subscription_id,'Congrats,Purchase successful, your subscription is active now.' AS success_message;
+    
+  ELSE
+    COMMIT; --  ----(Need Failed payment records too)
     SIGNAL SQLSTATE '45000'
     SET MESSAGE_TEXT = 'Payment failed,Please try again!';
-    UPDATE Member_Subscriptions
-    SET subscription_status = 'FAILED'
-    WHERE subscription_id = p_subscription_id;
     END IF;
+ END //
+DELIMITER ;
+
+
+-- 6) View Sessions
+-- ---------------------------------
+DELIMITER //
+CREATE PROCEDURE ViewUpcomingSessions ()
+ BEGIN
+    SELECT * FROM Sessions WHERE session_date >= CURDATE() 
+    AND session_status = 'SCHEDULED' ORDER BY session_date ASC;
  END //
 DELIMITER ;
 
@@ -225,5 +255,31 @@ CREATE PROCEDURE BookSession (IN p_member_id INT,IN p_session_id INT)
  END //
 DELIMITER ;
 
+
+-- 6) Cancel a session by admin/trainer
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE CancelSession (IN p_session_id INT)
+
+ BEGIN
+   DECLARE EXIT HANDLER FOR SQLEXCEPTION
+   BEGIN
+    ROLLBACK;
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Session cancellation failed!';
+   END;
+
+   START TRANSACTION;
+    -- cancelling the session
+    UPDATE Sessions SET session_status = 'CANCELLED', session_cancelled_time = CURDATE()
+    WHERE session_id = p_session_id;
+
+    -- cancelling all the bookings related to that session
+    UPDATE Bookings SET booking_status = 'CANCELLED' , booking_cancelled_time = CURDATE()
+    WHERE session_id = p_session_id;
+    COMMIT;
+    SELECT 'Session & Bookings cancelled successfully' AS success_message;
+ END //
+DELIMITER ;
  
 

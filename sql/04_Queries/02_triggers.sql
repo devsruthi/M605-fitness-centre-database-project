@@ -1,7 +1,5 @@
 
--- TRIGGERS 
--- *******************************
-
+-- =============================== TRIGGERS =================================================
 
 -- 1) Member age validation before member details insertion
 --  member age must be >= 16
@@ -33,7 +31,6 @@ END //
 DELIMITER ;
 
 
-
 -- 3) Prevent session booking - only memebers with active subscription can book sessions
 -- ------------------------------------------------------------------------------
 
@@ -48,13 +45,12 @@ BEGIN
         WHERE ms.member_id = NEW.member_id 
         AND ms.subscription_status = 'ACTIVE' 
         AND ms.start_date <= CURDATE()
-    ) THEN
+) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Member must have an active subscription plan to book sessions!';
     END IF;   
 END //
 DELIMITER ;
-
 
 
 -- 4) Prevent a member from booking the same session more than once
@@ -80,7 +76,6 @@ BEGIN
 END //
 
 DELIMITER ;
-
 
 
 -- 5) Prevent session booking - when session reaches maximum capacity, no more bookings are allowed
@@ -111,7 +106,6 @@ END //
 DELIMITER ;
 
 
-
 -- 6) Prevent PT session booking - when the Member's subscription plan does not include PT service access
 -- ------------------------------------------------------------------------------------------------
 
@@ -126,8 +120,7 @@ BEGIN
            FROM Sessions s
            JOIN service_Types st 
            ON s.service_type_id = st.service_type_id
-           WHERE s.session_id = NEW.session_id AND st.service_mode = 'PERSONAL'
-           )
+           WHERE s.session_id = NEW.session_id AND st.service_mode = 'PERSONAL')
            
     AND NOT EXISTS (
         SELECT 1
@@ -136,8 +129,7 @@ BEGIN
         ON ms.plan_id = sp.plan_id
         WHERE ms.member_id = NEW.member_id 
         AND ms.subscription_status = 'ACTIVE' AND plan_status = 'ACTIVE'
-        AND sp.personal_training_access = TRUE
-        )
+        AND sp.personal_training_access = TRUE)
      THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Member subscription does not include Personal Training access!';

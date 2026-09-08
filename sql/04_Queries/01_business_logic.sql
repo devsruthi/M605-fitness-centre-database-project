@@ -1,5 +1,14 @@
 
--- MEMBERS & SUBSCRIPTION MANAGEMENT
+
+-- ======================== BUSINESS LOGIC QUERIES ==========================================
+
+-- 1) MEMBERS & SUBSCRIPTION MANAGEMENT
+-- 2) PAYEMENT & HISTORY
+-- 3) SERVICE TYPES MANAGEMENT
+-- 4) SESSIONS BOOKING & SCHEDULE MANAGEMENT
+-- 5) TRAINERS MANAGEMENT
+
+-- 1) MEMBERS & SUBSCRIPTION MANAGEMENT
 -- ***********************************
 
 -- 1) To identify all members with ACTIVE subscriptions & their current plan
@@ -105,7 +114,7 @@ ORDER BY DATE_ADD(ms.start_date, INTERVAL sp.duration_in_months MONTH);
 
 
 
--- PAYEMENT & HISTORY
+-- 2) PAYEMENT & HISTORY
 -- ***********************************
 
 -- 1) Payment History - Full payment history of every member
@@ -266,7 +275,7 @@ HAVING COUNT(*) > 2
 ORDER BY failed_payment_count DESC;
 
 
--- SERVICE TYPES MANAGEMENT
+-- 3) SERVICE TYPES MANAGEMENT
 -- *****************************************
 
 -- 1) Identify all service types offered by the fitness centre
@@ -360,7 +369,7 @@ ORDER BY total_cancelled_bookings DESC;
 
 
 
--- SESSIONS BOOKING & SCHEDULE MANAGEMENT
+-- 4) SESSIONS BOOKING & SCHEDULE MANAGEMENT
 -- *****************************************
 
 -- 1) booking history of a specific member
@@ -502,7 +511,7 @@ GROUP BY s.session_id
 ORDER BY total_cancellations DESC;
 
 
--- TRAINERS MANAGEMENT
+-- 5) TRAINERS MANAGEMENT
 -- *****************************************
 
 -- 1) Display all trainers with their details
