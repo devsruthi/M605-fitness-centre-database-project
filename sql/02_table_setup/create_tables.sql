@@ -88,6 +88,8 @@ CREATE TABLE Sessions (
     duration_in_minutes INT NOT NULL DEFAULT 30 CHECK (duration_in_minutes >= 30),
     session_mode ENUM('ONLINE', 'OFFLINE') NOT NULL DEFAULT 'OFFLINE',
     session_room VARCHAR(100),
+    session_cancelled_time DATETIME,
+    session_cancelled_reason VARCHAR(250),
     session_status ENUM('SCHEDULED', 'COMPLETED', 'CANCELLED') NOT NULL DEFAULT 'SCHEDULED',
     FOREIGN KEY (service_type_id) REFERENCES Service_Types (service_type_id),
     FOREIGN KEY (trainer_id) REFERENCES Trainers (trainer_id),
