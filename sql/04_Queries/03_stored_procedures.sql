@@ -1,5 +1,8 @@
-
 -- ======================== STORED PROCEDURES ====================================
+
+
+-- TESTING THE PROCEDURES - Working Flow
+-- **********************************************
 
 -- MEMBER WORKING FLOW
 -- -------------------------------
@@ -8,19 +11,15 @@
 -- 3) View Member Details
 -- 4) Add Subscription Plan
 -- 5) Purchase Subscription Plan
--- 6) View Upcoming Sessions
 -- 6) Book Session
 
 --  ADMIN WORKING FLOW
 -- -------------------------------
 -- 1) Cancel Session (by admin)
 
--- =========================== TESTING THE PROCEDURES ================================
 
 SET @member_id = NULL;
 SET @subscription_id = NULL;
-SET @plan_id = 2; -- premium plan;
-
 
 -- Member Registration
 CALL MemberRegistration('Member1', 'Member1', 
@@ -36,22 +35,23 @@ CALL ViewMemberDetails(@member_id);
 -- Add Subscription Plan
 SELECT * FROM Subscription_Plans;
 
-CALL AddSubscription(@member_id, @plan_id, @subscription_id); -- (member_id, plan_id, subscription_id (output parameter))
+CALL AddSubscription(@member_id, 1, @subscription_id); -- (member_id, plan_id, subscription_id (output parameter))
 
 SELECT @subscription_id;
 
 -- Purchase Subscription Plan
 CALL PurchaseSubscriptionPlan(@subscription_id, 'CREDIT_CARD'); -- (subscription_id, payment_method)
 
--- View All Upcoming Sessions
-CALL ViewUpcomingSessions();
+SELECT * FROM Sessions;
 
 -- Book Session
 CALL BookSession(@member_id, 1); -- (member_id, session_id)
 
 
--- =============================== PROCEDURES IMPLEMENTATION =====================================================================================
+-- =====================================================================================================================
 
+ -- PROCEDURES
+ -- **********
 
  -- 1) Member Registration
  -- -----------------------
@@ -190,7 +190,7 @@ CREATE PROCEDURE PurchaseSubscriptionPlan (
     START TRANSACTION; -- ------
 
     -- online transaction happening.....
-    -- assuming got status from payment gateway (BANK/CARDD etc).....
+    -- assuming that --> got payment status from payment gateway (BANK/CARDD etc).....
     SET payment_status_from_gateway = 'SUCCESS';
 
     INSERT INTO Payments (subscription_id, payment_date, payment_amount, payment_method, payment_status)
@@ -212,17 +212,6 @@ CREATE PROCEDURE PurchaseSubscriptionPlan (
     SIGNAL SQLSTATE '45000'
     SET MESSAGE_TEXT = 'Payment failed,Please try again!';
     END IF;
- END //
-DELIMITER ;
-
-
--- 6) View Sessions
--- ---------------------------------
-DELIMITER //
-CREATE PROCEDURE ViewUpcomingSessions ()
- BEGIN
-    SELECT * FROM Sessions WHERE session_date >= CURDATE() 
-    AND session_status = 'SCHEDULED' ORDER BY session_date ASC;
  END //
 DELIMITER ;
 
