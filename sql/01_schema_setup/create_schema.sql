@@ -1,6 +1,6 @@
-CREATE SCHEMA fitness_wellness_center_system;
+CREATE SCHEMA fitness_wellness_center_system_modified;
 
-USE fitness_wellness_center_system;
+USE fitness_wellness_center_system_modified;
 
 set sql_safe_updates = 0;
 

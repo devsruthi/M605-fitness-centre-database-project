@@ -12,10 +12,12 @@
 -- 4) Add Subscription Plan
 -- 5) Purchase Subscription Plan
 -- 6) Book Session
+-- 7) Respond to Session Update
 
 --  ADMIN WORKING FLOW
 -- -------------------------------
 -- 1) Cancel Session (by admin)
+-- 2) Update Session
 
 
 SET @member_id = NULL;
@@ -46,6 +48,16 @@ SELECT * FROM Sessions;
 
 -- Book Session
 CALL BookSession(@member_id, 1); -- (member_id, session_id)
+
+-- Update Session
+CALL SessionUpdate(1,1, NULL, NULL, NULL, 'TRAINER_CHANGED','Current trainer is not available due to personal reasons'); 
+-- (session_id, update_trainer, update_date, update_time, update_room, update_mode, update_type, update_reason)
+
+-- Member responds to session update (ids come from the member's pending-notification list)
+SET @response_id = NULL;
+CALL SessionUpdateResponse(1, 7, 'ACCEPTED', 'Happy to continue with the new trainer.', @response_id);
+-- (session_update_id, booking_id, response_status, response_reason, response_id (output parameter))
+SELECT @response_id;
 
 
 -- =====================================================================================================================
@@ -166,7 +178,6 @@ CREATE PROCEDURE PurchaseSubscriptionPlan (
     IN p_payment_method ENUM('CREDIT_CARD', 'DEBIT_CARD', 'PAYPAL', 'BANK_TRANSFER'))
 
  BEGIN
-
      DECLARE l_payment_status VARCHAR(10);
      DECLARE l_plan_price DECIMAL(15, 2);
      DECLARE l_payment_id INT;
@@ -190,7 +201,7 @@ CREATE PROCEDURE PurchaseSubscriptionPlan (
     START TRANSACTION; -- ------
 
     -- online transaction happening.....
-    -- assuming that --> got payment status from payment gateway (BANK/CARDD etc).....
+    -- assuming that --> got payment status from payment gateway (BANK/CARD/PAYPAL etc).....
     SET payment_status_from_gateway = 'SUCCESS';
 
     INSERT INTO Payments (subscription_id, payment_date, payment_amount, payment_method, payment_status)
@@ -267,8 +278,100 @@ CREATE PROCEDURE CancelSession (IN p_session_id INT)
     UPDATE Bookings SET booking_status = 'CANCELLED' , booking_cancelled_time = CURDATE()
     WHERE session_id = p_session_id;
     COMMIT;
-    SELECT 'Session & Bookings cancelled successfully' AS success_message;
+    SELECT 'Session & All Bookings related to it cancelled successfully' AS success_message;
  END //
 DELIMITER ;
- 
 
+
+-- 7) Update Session
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE SessionUpdate (
+  IN p_session_id INT,
+  IN p_update_trainer INT,
+  IN p_update_date_time DATETIME,
+  IN p_update_room VARCHAR(100),
+  IN p_update_mode ENUM('ONLINE', 'OFFLINE'),
+  IN p_update_type ENUM('TRAINER_CHANGED','TIME_CHANGED','ROOM_CHANGED','MODE_CHANGED','OTHER'),
+  IN p_update_reason VARCHAR(250)
+)
+BEGIN
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Sessions
+        WHERE session_id = p_session_id
+          AND session_status = 'SCHEDULED' AND session_date >= CURDATE() AND start_time >= CURTIME()
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Scheduled session not found / Past session cannot be updated!';
+    END IF;
+
+    UPDATE Sessions
+    SET trainer_id = COALESCE(p_update_trainer, trainer_id),
+        start_time = COALESCE(p_update_time, start_time),
+        session_room = COALESCE(p_update_room, session_room),
+        session_mode = COALESCE(p_update_mode, session_mode)
+    WHERE session_id = p_session_id;
+
+    -- inserting the session update history
+    INSERT INTO Session_updates_History (session_id,update_trainer,update_date,update_time,
+       update_room,update_mode,update_type,update_reason,session_updated_at)
+    VALUES (p_session_id, p_update_trainer, p_update_date, p_update_time, p_update_room, p_update_mode, p_update_type, p_update_reason, CURTIME());
+
+    SET p_session_update_id = LAST_INSERT_ID();
+
+    -- one PENDING reply row for each member already booked
+    INSERT INTO Session_update_Responses (session_update_id, booking_id, response_status)
+    SELECT LAST_INSERT_ID(), b.booking_id, 'PENDING'
+    FROM Bookings b
+    WHERE b.session_id = p_session_id
+      AND b.booking_status = 'BOOKED';
+
+    SELECT
+        p_session_update_id AS session_update_id, b.booking_id AS booking_id, 
+        'Session updated successfully.Notification sent to booked members.Waiting for member responses.' AS success_message, 
+        'Notification sent to booked members.Waiting for member responses.' AS update_status;
+END //
+DELIMITER ;
+
+
+-- 8) Member responds to a session update
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE SessionUpdateResponse (
+    IN p_session_update_id INT,
+    IN p_booking_id INT,
+    IN p_response_status ENUM('ACCEPTED', 'DECLINED'),
+    IN p_response_reason VARCHAR(250),
+    OUT p_response_id INT
+)
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM Session_update_Responses
+        WHERE session_update_id = p_session_update_id
+          AND booking_id = p_booking_id
+          AND response_status = 'PENDING'
+    )
+    THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Response already recorded!';
+    END IF;
+
+    UPDATE Session_update_Responses
+    SET response_status = p_response_status,
+        response_reason = p_response_reason,
+        response_time = NOW()
+    WHERE session_update_id = p_session_update_id
+      AND booking_id = p_booking_id;
+
+    SET p_response_id = LAST_INSERT_ID();
+
+    IF p_response_status = 'DECLINED' THEN
+        UPDATE Bookings
+        SET booking_status = 'CANCELLED', booking_cancelled_time = NOW()
+        WHERE booking_id = p_booking_id;
+    END IF;
+
+    SELECT p_response_id AS response_id, 'Response recorded successfully' AS success_message;
+END //
+DELIMITER ;

@@ -50,10 +50,7 @@ CREATE TABLE Payments (
     payment_date DATE NOT NULL,
     payment_amount DECIMAL(15, 2) NOT NULL CHECK (payment_amount >= 0),
     payment_method ENUM(
-        'CREDIT_CARD',
-        'DEBIT_CARD',
-        'PAYPAL',
-        'BANK_TRANSFER'
+        'CREDIT_CARD','DEBIT_CARD','PAYPAL','BANK_TRANSFER'
     ) NOT NULL,
     payment_status ENUM('SUCCESS', 'FAILED', 'PENDING') NOT NULL DEFAULT 'PENDING',
     FOREIGN KEY (subscription_id) REFERENCES Member_Subscriptions (subscription_id)
@@ -73,8 +70,7 @@ CREATE TABLE Service_Types (
         )
         OR (
             service_mode = 'GROUP'
-            AND max_participants > 1
-            AND max_participants <= 20
+            AND max_participants > 1 AND max_participants <= 20
         )
     )
 );
@@ -95,12 +91,10 @@ CREATE TABLE Sessions (
     FOREIGN KEY (trainer_id) REFERENCES Trainers (trainer_id),
     CHECK (
         (
-            session_mode = 'OFFLINE'
-            AND session_room IS NOT NULL
+            session_mode = 'OFFLINE' AND session_room IS NOT NULL
         )
         OR (
-            session_mode = 'ONLINE'
-            AND session_room IS NULL
+            session_mode = 'ONLINE' AND session_room IS NULL
         )
     )
 );
@@ -117,9 +111,42 @@ CREATE TABLE Bookings (
     UNIQUE (member_id, session_id)  -- A member cannot have multiple bookings for the same session 
 );
 
+-- Session Change Impact Management
 
+CREATE TABLE Session_updates_History (
+    session_update_id INT AUTO_INCREMENT PRIMARY KEY,
+    session_id INT NOT NULL,
+    update_trainer INT NOT NULL,
+    update_date DATE NOT NULL,
+    update_time DATETIME NOT NULL,
+    update_room VARCHAR(100) NOT NULL,
+    update_mode ENUM('ONLINE', 'OFFLINE') NOT NULL DEFAULT 'OFFLINE',
+    update_type ENUM('TRAINER_CHANGED','TIME_CHANGED','ROOM_CHANGED','MODE_CHANGED','OTHER') NOT NULL,
+    update_reason VARCHAR(250) NOT NULL,
+    session_updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES Sessions (session_id),
+    FOREIGN KEY (update_trainer) REFERENCES Trainers (trainer_id),
+    UNIQUE (session_id, update_type)
+);
 
-
-
+CREATE TABLE Session_update_Responses (
+    response_id INT AUTO_INCREMENT PRIMARY KEY,
+    session_update_id INT NOT NULL,
+    session_id INT NOT NULL,
+    response_status ENUM('PENDING', 'ACCEPTED', 'DECLINED') NOT NULL DEFAULT 'PENDING',
+    response_reason VARCHAR(250),
+    response_time DATETIME,
+    FOREIGN KEY (session_update_id) REFERENCES Session_updates_History (session_update_id),
+    FOREIGN KEY (session_id) REFERENCES Sessions (session_id),
+    UNIQUE (session_update_id, session_id),
+    CHECK (
+        (
+            response_status = 'PENDING' AND response_time IS NULL
+        )
+        OR (
+            response_status IN ('ACCEPTED', 'DECLINED') AND response_time IS NOT NULL
+        )
+    )
+);
 
 

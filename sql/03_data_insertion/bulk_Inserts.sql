@@ -28,7 +28,7 @@ INSERT INTO Subscription_Plans (
     plan_description,
     plan_status,
     group_classes_access,
-    personal_training_acccess,
+    personal_training_access,
     exclusive_services
 )
 VALUES
@@ -359,7 +359,7 @@ VALUES
 -- UPCOMING SESSIONS - OCTOBER 2026
 -- =====================================================
 
-(1, 4, '2026-10-02', '08:00:00', 60,
+(1, 6, '2026-10-02', '08:00:00', 60,
  'OFFLINE', 'Studio A', 'SCHEDULED'),
 
 (2, 6, '2026-10-04', '10:00:00', 60,
@@ -368,7 +368,7 @@ VALUES
 (3, 8, '2026-10-06', '09:00:00', 60,
  'OFFLINE', 'Studio B', 'SCHEDULED'),
 
-(4, 10, '2026-10-08', '17:00:00', 75,
+(4, 10, '2026-10-08', '18:00:00', 75,
  'OFFLINE', 'Training Room', 'SCHEDULED'),
 
 (5, 12, '2026-10-10', '18:00:00', 60,
@@ -388,7 +388,7 @@ VALUES
 -- =====================================================
 
 (1, 20, '2026-11-02', '09:00:00', 60,
- 'ONLINE', NULL, 'SCHEDULED'),
+ 'OFFLINE', 'Studio A', 'SCHEDULED'),
 
 (2, 1, '2026-11-05', '17:00:00', 60,
  'OFFLINE', 'Fitness Hall', 'SCHEDULED'),
@@ -465,8 +465,9 @@ VALUES
 -- Member 7
 (7, 14, '2026-09-04 15:00:00', NULL, 'BOOKED'),
 
--- Member 8
-(8, 7, '2026-09-01 08:45:00', NULL, 'BOOKED'),
+-- Member 8 declined the trainer change on session 7
+(8, 7, '2026-09-01 08:45:00',
+     '2026-09-20 11:00:00', 'CANCELLED'),
 
 -- Member 9
 (9, 10, '2026-09-02 13:20:00', NULL, 'BOOKED'),
@@ -496,3 +497,11 @@ VALUES
 (7, 19, '2026-09-04 14:15:00', NULL, 'BOOKED'),
 
 (9, 20, '2026-09-05 08:30:00', NULL, 'BOOKED');
+
+
+-- =====================================================
+-- SESSION CHANGE IMPACT MANAGEMENT
+-- Sessions already store the NEW current details.
+-- History stores that a change happened; responses store
+-- each booked member's accept / decline / no reply.
+-- =====================================================
