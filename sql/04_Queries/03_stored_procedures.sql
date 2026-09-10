@@ -344,9 +344,7 @@ CREATE PROCEDURE PurchaseSubscriptionPlan (
   JOIN Subscription_Plans sp ON sp.plan_id = ms.plan_id
   WHERE ms.subscription_id = p_subscription_id;
 
-    START TRANSACTION; -- ------
-
-    -- online transaction happening.....
+    START TRANSACTION; 
     -- assuming that --> got payment status from payment gateway (BANK/CARD/PAYPAL etc).....
     SET l_payment_status_from_gateway = 'SUCCESS';
 
@@ -356,7 +354,7 @@ CREATE PROCEDURE PurchaseSubscriptionPlan (
     SET l_payment_id = LAST_INSERT_ID();
 
    IF payment_status_from_gateway = 'SUCCESS'
-    -- updating subscrition status from PENDING -> ACTIVE
+ 
     THEN
     UPDATE Member_Subscriptions
     SET subscription_status = 'ACTIVE', start_date = CURDATE()
@@ -415,7 +413,7 @@ CREATE PROCEDURE SessionUpdateResponse (
 )
 BEGIN
     IF EXISTS (
-        SELECT 1 FROM Session_update_Responses
+        SELECT 1 FROM Session_updation_Responses
         WHERE session_update_id = p_session_update_id
           AND booking_id = p_booking_id
           AND response_status != 'PENDING'
@@ -425,7 +423,7 @@ BEGIN
         SET MESSAGE_TEXT = 'Your response has already been recorded!';
     END IF;
 
-    INSERT INTO Session_update_Responses (session_update_id, booking_id, response_status, response_reason)
+    INSERT INTO Session_updation_Responses (session_update_id, booking_id, response_status, response_reason)
     VALUES (p_session_update_id, p_booking_id, p_response_status, p_response_reason);
 
     IF p_response_status = 'DECLINED' THEN
@@ -473,13 +471,13 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE SessionUpdate (
   IN p_session_id INT,
-  IN p_update_trainer INT,
-  IN p_update_date DATE,
-  IN p_update_time TIME,
-  IN p_update_room VARCHAR(100),
-  IN p_update_mode ENUM('ONLINE', 'OFFLINE'),
-  IN p_update_type ENUM('TRAINER_CHANGED','TIME_CHANGED','ROOM_CHANGED','MODE_CHANGED','OTHER'),
-  IN p_update_reason VARCHAR(250)
+  IN p_trainer_id INT,
+  IN p_session_date DATE,
+  IN p_start_time TIME,
+  IN p_session_room VARCHAR(100),
+  IN p_session_mode ENUM('ONLINE', 'OFFLINE'),
+  IN p_updation_type ENUM('TRAINER_CHANGED','TIME_CHANGED','ROOM_CHANGED','MODE_CHANGED','OTHER'),
+  IN p_updation_reason VARCHAR(250)
 )
 BEGIN
     DECLARE v_session_update_id INT;
@@ -496,29 +494,20 @@ BEGIN
     START TRANSACTION;
 
     UPDATE Sessions
-    SET trainer_id = COALESCE(p_update_trainer, trainer_id),
-        start_time = COALESCE(p_update_time, start_time),
-        session_date = COALESCE(p_update_date, session_date),
-        session_room = COALESCE(p_update_room, session_room),
-        session_mode = COALESCE(p_update_mode, session_mode)
+    SET trainer_id = COALESCE(p_trainer_id, trainer_id),
+        start_time = COALESCE(p_start_time, start_time),
+        session_date = COALESCE(p_session_date, session_date),
+        session_room = COALESCE(p_session_room, session_room),
+        session_mode = COALESCE(p_session_mode, session_mode)
     WHERE session_id = p_session_id;
 
-    -- Inserting into session update history tbale
-    INSERT INTO Session_updates_History (
-        session_id, update_trainer, update_date, update_time,
-        update_room, update_mode, update_type, update_reason
+    -- Inserting into session updation table
+    INSERT INTO Session_updations (
+        session_id, trainer_id, session_date, start_time,
+        session_room, session_mode, updation_type, updation_reason
     )
-    SELECT
-        s.session_id,
-        s.trainer_id,
-        s.session_date,
-        TIMESTAMP(s.session_date, s.start_time),
-        COALESCE(s.session_room, 'ONLINE'),
-        s.session_mode,
-        p_update_type,
-        p_update_reason
-    FROM Sessions s
-    WHERE s.session_id = p_session_id;
+    VALUES (p_session_id, p_trainer_id, p_session_date, p_start_time,
+    p_session_room, p_session_mode, p_updation_type, p_updation_reason);
 
     SET v_session_update_id = LAST_INSERT_ID();
     COMMIT;

@@ -113,36 +113,36 @@ CREATE TABLE Bookings (
 
 -- Session Change Impact Management
 
-CREATE TABLE Session_updates_History (
+CREATE TABLE Session_updations(
     session_update_id INT AUTO_INCREMENT PRIMARY KEY,
     session_id INT NOT NULL,
-    update_trainer INT NOT NULL,
-    update_date DATE NOT NULL,
-    update_time DATETIME NOT NULL,
-    update_room VARCHAR(100) NOT NULL,
-    update_mode ENUM('ONLINE', 'OFFLINE') NOT NULL DEFAULT 'OFFLINE',
-    update_type ENUM('TRAINER_CHANGED','TIME_CHANGED','ROOM_CHANGED','MODE_CHANGED','OTHER') NOT NULL,
-    update_reason VARCHAR(250) NOT NULL,
+    trainer_id INT NOT NULL,
+    session_date DATE NOT NULL,
+    start_time DATETIME NOT NULL,
+    session_room VARCHAR(100) NOT NULL,
+    session_mode ENUM('ONLINE', 'OFFLINE') NOT NULL DEFAULT 'OFFLINE',
+    updation_type ENUM('TRAINER_CHANGED','TIME_CHANGED','ROOM_CHANGED','MODE_CHANGED','OTHER') NOT NULL,
+    updation_reason VARCHAR(250) NOT NULL,
     session_updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id) REFERENCES Sessions (session_id),
-    FOREIGN KEY (update_trainer) REFERENCES Trainers (trainer_id)
+    FOREIGN KEY (trainer_id) REFERENCES Trainers (trainer_id)
 );
 
-CREATE TABLE Session_update_Responses (
+CREATE TABLE Session_updation_Responses (
     response_id INT AUTO_INCREMENT PRIMARY KEY,
     session_update_id INT NOT NULL,
     booking_id INT NOT NULL,
     response_status ENUM('PENDING', 'ACCEPTED', 'DECLINED') NOT NULL DEFAULT 'PENDING',
     response_reason VARCHAR(250),
-    response_time DATETIME,
-    FOREIGN KEY (session_update_id) REFERENCES Session_updates_History (session_update_id),
+    response_created_at DATETIME,
+    FOREIGN KEY (session_update_id) REFERENCES Session_updations (session_update_id),
     FOREIGN KEY (booking_id) REFERENCES Bookings (booking_id),
     CHECK (
         (
-            response_status = 'PENDING' AND response_time IS NULL
+            response_status = 'PENDING' AND response_created_at IS NULL
         )
         OR (
-            response_status IN ('ACCEPTED', 'DECLINED') AND response_time IS NOT NULL
+            response_status IN ('ACCEPTED', 'DECLINED') AND response_created_at IS NOT NULL
         )
     )
 );
