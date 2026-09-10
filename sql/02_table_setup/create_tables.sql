@@ -125,20 +125,18 @@ CREATE TABLE Session_updates_History (
     update_reason VARCHAR(250) NOT NULL,
     session_updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id) REFERENCES Sessions (session_id),
-    FOREIGN KEY (update_trainer) REFERENCES Trainers (trainer_id),
-    UNIQUE (session_id, update_type)
+    FOREIGN KEY (update_trainer) REFERENCES Trainers (trainer_id)
 );
 
 CREATE TABLE Session_update_Responses (
     response_id INT AUTO_INCREMENT PRIMARY KEY,
     session_update_id INT NOT NULL,
-    session_id INT NOT NULL,
+    booking_id INT NOT NULL,
     response_status ENUM('PENDING', 'ACCEPTED', 'DECLINED') NOT NULL DEFAULT 'PENDING',
     response_reason VARCHAR(250),
     response_time DATETIME,
     FOREIGN KEY (session_update_id) REFERENCES Session_updates_History (session_update_id),
-    FOREIGN KEY (session_id) REFERENCES Sessions (session_id),
-    UNIQUE (session_update_id, session_id),
+    FOREIGN KEY (booking_id) REFERENCES Bookings (booking_id),
     CHECK (
         (
             response_status = 'PENDING' AND response_time IS NULL
