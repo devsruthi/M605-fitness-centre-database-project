@@ -16,7 +16,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- 1) Payment method performance (Comparing the payment methods performance,most success rate giving first)
+-- 2) Payment method performance (Comparing the payment methods performance,most success rate giving first)
 -- -------------------------------------------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE ViewPaymentMethodPerformance ()
@@ -37,7 +37,7 @@ BEGIN
    END //
     DELIMITER ;
 
--- 2) Revenue details : monthly revenue in a specific year (eg: 2026)
+-- 3) Revenue details : monthly revenue in a specific year (eg: 2026)
 -- only listing months with successful payments
 -- --------------------------------------------------------
 DELIMITER //
@@ -56,7 +56,7 @@ BEGIN
 END //
 DELIMITER ;
 
---3) Revenue Dashboard for a selected time period 
+--4) Revenue Dashboard for a selected time period 
 -- (total and average successful payments & amounts per plan)
 -- (selected time period: 2026-01-01 to 2026-07-01)
 -- --------------------------------------------------------
@@ -84,7 +84,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- 4) Most popular services (in terms of bookings)
+-- 5) Most popular services (in terms of bookings)
 -- --------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE MostPopularServices ()
@@ -122,7 +122,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- 5) Sessions with the greatest number of cancellations ( by admin/trainer)
+-- 6) Sessions with the greatest number of cancellations ( by admin/trainer)
 -- --------------------------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE IdentifyMostCancelledSessions ()
@@ -141,7 +141,7 @@ END //
 DELIMITER ;
 
 
--- 4) Members who have failed payments more than 2 times
+-- 7) Members who have failed payments more than 2 times
 -- --------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE MembersWithFailedPayments (IN p_frequency INT)
@@ -161,7 +161,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- 6) Members who have not made any bookings in the last 30 days
+-- 8) Members who have not made any bookings in the last 30 days
 -- ----------------------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE MembersWithoutBookings ()
@@ -179,7 +179,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- 7) Future sessions : total bookings and available slots left for each upcoming session
+-- 8) Future sessions : total bookings and available slots left for each upcoming session
 -- --------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE FutureSessionsWithAvailablitity ()
