@@ -25,7 +25,7 @@ CREATE TRIGGER log_member_details_insertion
 AFTER INSERT ON Members 
 FOR EACH ROW 
 BEGIN 
-INSERT INTO Member_Log (member_id, first_name, last_name, email_id, phone_no, date_of_birth, account_status, joining_date) 
+INSERT INTO Member_Details_Log (member_id, first_name, last_name, email_id, phone_no, date_of_birth, account_status, joining_date) 
 VALUES (NEW.member_id, NEW.first_name, NEW.last_name, NEW.email_id, NEW.phone_no, NEW.date_of_birth, NEW.account_status, NEW.joining_date); 
 END // 
 DELIMITER ;

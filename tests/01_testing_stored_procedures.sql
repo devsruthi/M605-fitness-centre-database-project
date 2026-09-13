@@ -7,6 +7,7 @@
 -- 1) ANALYSIS & REPORTS  
 -- 2) MEMBER FLOW
 -- 3) ADMIN FLOW
+-- 4) Session Impact Module
 
 
 -- 1) ANALYSIS & REPORTS
@@ -23,7 +24,7 @@
  CALL FutureSessionsWithAvailablitity();
 
 
--- 1) MEMBER FLOW
+-- 2) MEMBER FLOW
 -- *********************************************
 -- 1) Member Registration
 -- 2) Member Login
@@ -70,9 +71,8 @@ CALL SessionUpdateResponse(1, 7, 'ACCEPTED', 'Happy to continue with the new tra
 -- (session_update_id, booking_id, response_status, response_reason)
 
 
--- =====================================================================================================================
 
- -- 2) ADMIN FLOW
+ -- 3) ADMIN FLOW
  -- ***********************************************
 
  -- 1. Cancel scheduled Session
@@ -84,3 +84,22 @@ CALL SessionUpdateResponse(1, 7, 'ACCEPTED', 'Happy to continue with the new tra
  CALL SessionUpdate(1,1, NULL, NULL, NULL,NULL, 'TRAINER_CHANGED','Current trainer is not available'); 
  -- (session_id, update_trainer, update_date, update_time, update_room, update_mode, update_type, update_reason)
 
+ -- 3. Cancellesd Bookings Analysis
+  -- -----------------------
+  CALL CanceledBookingsAnalysis();
+
+
+
+-- 4) SESSION IMPACT MODULE
+-- ***********************************************
+
+CALL MostAffectedSessionsAnalysis();
+-- 2. Declines by type of session change (TRAINER_CHANGED, TIME_CHANGED, ROOM_CHANGED, MODE_CHANGED, OTHER)
+CALL SessionChangeDeclinesByUpdationType();
+CALL SessionChangeDeclinesByService();
+CALL SessionChangeResponseDashboard();
+CALL MembersWhoDeclinedSessionChanges();
+CALL MostAffectedClientsAnalysis();
+CALL BookingsCancelledDueToSessionChange(9, 2026); -- (month, year)
+CALL BookingsCancelledDueToSessionChange(NULL, 2026); -- (year)
+CALL PendingSessionChangeResponses();

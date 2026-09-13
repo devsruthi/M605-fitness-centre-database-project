@@ -7,6 +7,7 @@
 -- 3) SERVICE TYPES MANAGEMENT
 -- 4) SESSIONS BOOKING & SCHEDULE MANAGEMENT
 -- 5) TRAINERS MANAGEMENT
+-- 6) SESSION CHANGE IMPACT (ADMIN)
 
 -- 1) MEMBERS & SUBSCRIPTION MANAGEMENT
 -- ***********************************
@@ -36,8 +37,8 @@ GROUP BY ms.plan_id
 ORDER BY total_subscriptions DESC
 ;
 
--- 3) Display Complete subscription history of members in the wellness centre
--- ---------------------------------------------------------------------
+-- 3) Display member's subscription history in the fitness centre
+-- ----------------------------------------------------------------
 SELECT CONCAT(m.first_name,' ', m.last_name) AS member_name,sp.plan_name, 
 sp.duration_in_months AS month_duration,DATE_FORMAT(ms.start_date,'%b %d, %Y') AS start_date,
 DATE_FORMAT (DATE_ADD(ms.start_date , INTERVAL sp.duration_in_months MONTH),'%b %d, %Y') AS end_date,
@@ -52,21 +53,21 @@ ORDER BY m.member_id, ms.start_date;
 
 -- 4) Identify members who are eligible for Personal Training 
 -- -------------------------------------------------------------------
-SELECT CONCAT(m.first_name,' ', m.last_name) AS member_name,ms.subscription_status,
-sp.plan_name,sp.plan_description
+SELECT m.member_id, CONCAT(m.first_name,' ', m.last_name) AS member_name,ms.subscription_status,
+sp.plan_name
 FROM Members m
 JOIN Member_Subscriptions ms
 ON m.member_id = ms.member_id
 JOIN Subscription_Plans sp
 ON sp.plan_id = ms.plan_id 
-WHERE  ms.subscription_status = 'ACTIVE' AND sp.personal_training_acccess = TRUE ;
+WHERE  ms.subscription_status = 'ACTIVE' AND sp.personal_training_access = TRUE ;
 
 
 -- 5) Find all members who have an ACTIVE account but currently don't have any ACTIVE subscription
 -- & Check whether they have any previous subscription history/not. 
 -- -----------------------------------------------------------------------------------------------
 
-SELECT m.member_id, CONCAT(m.first_name,' ', m.last_name) AS member_name,m.account_status, 
+SELECT m.member_id, CONCAT(m.first_name,' ', m.last_name) AS member_name,m.account_status,
 DATE_FORMAT(m.joining_date,'%b %d, %Y') AS join_date,
 CASE
 WHEN  EXISTS (
@@ -222,6 +223,7 @@ ORDER BY SUM(CASE WHEN p.payment_status = 'SUCCESS' THEN p.payment_amount ELSE 0
 
 
 -- 6) Failed or Pending payments for a specific member
+-- (member_id = 1)
 -- ---------------------------------------------------------------------
 
 SELECT
@@ -240,6 +242,7 @@ ORDER BY p.payment_date DESC;
 
 
 -- 7) Purchase history of a specific member
+-- (member_id = 1)
 -- ---------------------------------------------------------------------
 
 SELECT
@@ -282,7 +285,7 @@ ORDER BY failed_payment_count DESC;
 -- -------------------------------------------------------------
 
 SELECT
-st.service_type_name,st.service_mode,st.max_participants,st.service_type_description
+st.service_type_id,st.service_type_name,st.service_mode,st.max_participants,st.service_type_description
 FROM Service_Types st
 WHERE st.service_type_status = 'ACTIVE'
 ORDER BY st.service_mode, st.service_type_name;
@@ -301,7 +304,7 @@ ORDER BY st.service_mode, st.service_type_name;
 -- 3) Identify most popular service types (in terms of bookings)
 -- ---------------------------------------------------------------------
 SELECT
-st.service_type_name,st.service_mode,
+st.service_type_id,st.service_type_name,st.service_mode,
 COUNT(CASE WHEN b.booking_status = 'BOOKED' THEN b.booking_id END) AS total_bookings
 FROM Service_Types st
 LEFT JOIN Sessions s 
@@ -316,7 +319,7 @@ ORDER BY total_bookings DESC;
 -- ---------------------------------------------------------------------
 
 SELECT
-st.service_type_name,st.service_mode
+st.service_type_id,st.service_type_name,st.service_mode
 FROM Service_Types st 
 WHERE NOT EXISTS
 (
@@ -328,7 +331,7 @@ WHERE s.service_type_id = st.service_type_id
 -- 5) Identify service types with no bookings yet
 -- ---------------------------------------------------------------------
 SELECT
-st.service_type_name,st.service_mode
+st.service_type_id,st.service_type_name,st.service_mode
 FROM Service_Types st
 WHERE 
 NOT EXISTS (
@@ -392,9 +395,10 @@ WHERE m.member_id = 1 ORDER BY s.session_date DESC;
 -- -----------------------------------------------------------------------------
 
 SELECT
-st.service_type_name,
-DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date,b.booking_status
+b.booking_id,st.service_type_name,
+DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date, DATE_FORMAT(s.start_time, '%h:%i %p') AS start_time, session_mode,  b.booking_status
 FROM Members m
+JOIN Bookings b ON m.member_id = b.member_id
 JOIN Sessions s 
 ON b.session_id = s.session_id
 JOIN Service_Types st 
@@ -586,5 +590,46 @@ TIMESTAMPDIFF(MONTH, t.hired_date, CURDATE()) % 12, ' months') AS years_at_centr
 FROM Trainers t
 WHERE t.account_status = 'ACTIVE'
 AND t.hired_date < DATE_SUB(CURDATE(), INTERVAL 1 YEAR)ORDER BY t.hired_date DESC;
+
+
+-- 6) SESSION CHANGE IMPACT (ADMIN)
+-- *****************************************
+
+-- 1) How many clients declined / cancelled a booking after a session change
+-- ---------------------------------------------------------------------
+SELECT
+COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) AS declined_responses,
+COUNT(DISTINCT CASE WHEN sur.response_status = 'DECLINED' THEN b.member_id END) AS clients_who_declined,
+COUNT(CASE WHEN sur.response_status = 'DECLINED' AND b.booking_status = 'CANCELLED'
+THEN b.booking_id END) AS bookings_cancelled_due_to_change,
+COUNT(CASE WHEN sur.response_status = 'ACCEPTED' THEN sur.response_id END) AS accepted_responses,
+COUNT(CASE WHEN sur.response_status = 'PENDING' THEN sur.response_id END) AS pending_responses
+FROM Session_updation_Responses sur
+JOIN Bookings b ON sur.booking_id = b.booking_id;
+
+
+-- 2) Declines by type of session change (trainer / time / room / mode)
+-- ---------------------------------------------------------------------
+SELECT
+su.updation_type,
+COUNT(sur.response_id) AS total_responses,
+COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) AS declined,
+COUNT(CASE WHEN sur.response_status = 'ACCEPTED' THEN sur.response_id END) AS accepted,
+COUNT(CASE WHEN sur.response_status = 'PENDING' THEN sur.response_id END) AS pending,
+COUNT(CASE WHEN sur.response_status = 'DECLINED' AND b.booking_status = 'CANCELLED'
+THEN b.booking_id END) AS bookings_cancelled_due_to_change,
+ROUND(
+COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) * 100
+/ NULLIF(COUNT(sur.response_id), 0), 2
+) AS decline_rate
+FROM Session_updations su
+LEFT JOIN Session_updation_Responses sur ON sur.session_update_id = su.session_update_id
+LEFT JOIN Bookings b ON sur.booking_id = b.booking_id
+GROUP BY su.updation_type
+ORDER BY declined DESC;
+
+
+
+
 
 

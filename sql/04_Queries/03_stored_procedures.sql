@@ -2,6 +2,11 @@
 
 -- ==================================STORED PROCEDURES =============================================
 
+-- 1) Analysis & Reports 
+-- 2) Member Flow
+-- 3) Admin Flow
+-- 4) Session Impact Feature
+
 -- ***************** ANALYSIS & REPORTS ***************************
 
 -- 1) Popularity rank of subscription plans in the entire history
@@ -320,54 +325,71 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE PurchaseSubscriptionPlan (
     IN p_subscription_id INT,
-    IN p_payment_method ENUM('CREDIT_CARD', 'DEBIT_CARD', 'PAYPAL', 'BANK_TRANSFER'))
+    IN p_payment_method ENUM('CREDIT_CARD', 'DEBIT_CARD', 'PAYPAL', 'BANK_TRANSFER')
+)
+BEGIN
+    DECLARE l_plan_price DECIMAL(15, 2);
+    DECLARE l_payment_id INT;
+    DECLARE l_payment_status_from_gateway VARCHAR(10);
 
- BEGIN
-     DECLARE l_payment_status VARCHAR(10);
-     DECLARE l_plan_price DECIMAL(15, 2);
-     DECLARE l_payment_id INT;
-     DECLARE l_payment_status_from_gateway VARCHAR(10);
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Purchase failed. Please try again.';
+    END;
 
-    IF EXISTS (SELECT 1 FROM Member_Subscriptions WHERE subscription_id = p_subscription_id AND subscription_status = 'ACTIVE')
-    THEN
-    SIGNAL SQLSTATE '45000'
-    SET MESSAGE_TEXT = 'Subscription is already active.';
+    IF EXISTS (
+        SELECT 1 FROM Member_Subscriptions
+        WHERE subscription_id = p_subscription_id
+          AND subscription_status = 'ACTIVE'
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Subscription is already active.';
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM Member_Subscriptions WHERE subscription_id = p_subscription_id AND subscription_status = 'PENDING')
-    THEN
-    SIGNAL SQLSTATE '45000' 
-    SET MESSAGE_TEXT = 'You have not chosen the subscription plan!';
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Member_Subscriptions
+        WHERE subscription_id = p_subscription_id
+          AND subscription_status = 'PENDING'
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'You have not chosen the subscription plan!';
     END IF;
 
-    -- -- getting plan price autmatcially, not taking from user
-  SELECT sp.plan_price INTO l_plan_price FROM Member_Subscriptions ms 
-  JOIN Subscription_Plans sp ON sp.plan_id = ms.plan_id
-  WHERE ms.subscription_id = p_subscription_id;
+    -- getting plan price automatically, not taking from user
+    SELECT sp.plan_price INTO l_plan_price
+    FROM Member_Subscriptions ms
+    JOIN Subscription_Plans sp ON sp.plan_id = ms.plan_id
+    WHERE ms.subscription_id = p_subscription_id;
 
-    START TRANSACTION; 
-    -- assuming that --> got payment status from payment gateway (BANK/CARD/PAYPAL etc).....
+    -- assuming payment status came from the payment gateway ........
     SET l_payment_status_from_gateway = 'SUCCESS';
+
+    START TRANSACTION;
 
     INSERT INTO Payments (subscription_id, payment_date, payment_amount, payment_method, payment_status)
     VALUES (p_subscription_id, CURDATE(), l_plan_price, p_payment_method, l_payment_status_from_gateway);
 
     SET l_payment_id = LAST_INSERT_ID();
 
-   IF payment_status_from_gateway = 'SUCCESS'
- 
-    THEN
-    UPDATE Member_Subscriptions
-    SET subscription_status = 'ACTIVE', start_date = CURDATE()
-    WHERE subscription_id = p_subscription_id;
-    COMMIT;
-    SELECT  l_payment_id AS payment_id, p_subscription_id,'Congrats,Purchase successful, your subscription is active now.' AS success_message;
-    
-  ELSE
-    COMMIT; --  ----(Need Failed payment records too)
-    SIGNAL SQLSTATE '45000'
-    SET MESSAGE_TEXT = 'Payment failed,Please try again!';
+    IF l_payment_status_from_gateway = 'SUCCESS' THEN
+        UPDATE Member_Subscriptions
+        SET subscription_status = 'ACTIVE', start_date = CURDATE()
+        WHERE subscription_id = p_subscription_id;
+
+        COMMIT;
+        SELECT l_payment_id AS payment_id,
+               p_subscription_id AS subscription_id,
+               'Congrats, Purchase successful, your subscription is active now.' AS success_message;
+    ELSE
+        -- ( keep failed payment records for payment history ) do not activate the plan
+        COMMIT;
+        SELECT l_payment_id AS payment_id,
+               p_subscription_id AS subscription_id,
+               'Payment failed. Please try again.' AS message;
     END IF;
- END //
+END //
 DELIMITER ;
 
 
@@ -409,7 +431,7 @@ CREATE PROCEDURE SessionUpdateResponse (
     IN p_session_update_id INT,
     IN p_booking_id INT,
     IN p_response_status ENUM('ACCEPTED', 'DECLINED'),
-    IN p_response_reason VARCHAR(250),
+    IN p_response_reason VARCHAR(250)
 )
 BEGIN
     IF EXISTS (
@@ -427,7 +449,9 @@ BEGIN
     VALUES (p_session_update_id, p_booking_id, p_response_status, p_response_reason);
 
     IF p_response_status = 'DECLINED' THEN
-        UPDATE Bookings SET booking_status = 'CANCELLED', booking_cancelled_time = NOW()
+        UPDATE Bookings SET booking_status = 'CANCELLED', booking_cancelled_time = NOW(), 
+        booking_cancelled_by = 'MEMBER',
+        booking_cancelled_reason = p_response_reason
         WHERE booking_id = p_booking_id;
     END IF;
 
@@ -458,7 +482,8 @@ CREATE PROCEDURE CancelSession (IN p_session_id INT)
     WHERE session_id = p_session_id;
 
     -- cancelling all the bookings related to that session
-    UPDATE Bookings SET booking_status = 'CANCELLED' , booking_cancelled_time = CURDATE()
+    UPDATE Bookings SET booking_status = 'CANCELLED' , booking_cancelled_time = CURDATE(),
+    booking_cancelled_by = 'SYSTEM'
     WHERE session_id = p_session_id;
     COMMIT;
     SELECT 'Session & All Bookings related to it cancelled successfully' AS success_message;
@@ -519,5 +544,252 @@ BEGIN
 END //
 DELIMITER ;
 
+
+-- 3) cancelled bookings analysis
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE CanceledBookingsAnalysis ()
+BEGIN
+    SELECT
+    st.service_type_name,
+    COUNT(b.booking_id) AS total_bookings,
+    COUNT(CASE WHEN b.booking_status = 'BOOKED' THEN b.booking_id END) AS current_bookings,
+    COUNT(CASE WHEN b.booking_status = 'CANCELLED' THEN b.booking_id END) AS total_cancellations,
+    ROUND(
+        COUNT(CASE WHEN b.booking_status = 'CANCELLED' THEN b.booking_id END) * 100
+        / NULLIF(COUNT(b.booking_id), 0),
+        2
+    ) AS cancellation_rate
+    FROM Sessions s
+    LEFT JOIN Bookings b ON b.session_id = s.session_id
+    LEFT JOIN Service_Types st ON s.service_type_id = st.service_type_id
+    GROUP BY st.service_type_id, st.service_type_name
+    ORDER BY cancellation_rate DESC;
+END //
+DELIMITER ;
+
+
+-- *********************************** SESSION IMPACT MODULE ************************************
+-- Relevance: In a fitness club, last-minute session changes (trainer, time, room, mode)
+-- often make booked members drop out. Empty seats, unused trainer hours and unhappy
+-- members are a real operational cost. This module measures that impact so admin can
+-- see which change types and services lose the most bookings, which sessions are
+-- worst affected, and how many cancellations happened in a given month — and then
+-- avoid the changes that hurt attendance the most.
+
+
+-- 1) Members session change declined rate by type of session change
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE SessionChangeDeclinesByUpdationType ()
+BEGIN
+    SELECT
+    su.updation_type,
+    COUNT(sur.response_id) AS total_members_affected,
+    COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) AS declined_count,
+    COUNT(CASE WHEN sur.response_status = 'ACCEPTED' THEN sur.response_id END) AS accepted_count,
+    COUNT(CASE WHEN sur.response_status = 'PENDING' THEN sur.response_id END) AS pending_count,
+    COUNT(CASE WHEN sur.response_status = 'DECLINED' AND b.booking_status = 'CANCELLED'
+    THEN b.booking_id END) AS bookings_cancelled_due_to_change,
+    ROUND(
+        COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) * 100
+        / NULLIF(COUNT(sur.response_id), 0),
+        2
+    ) AS decline_rate
+    FROM Session_updations su
+    LEFT JOIN Session_updation_Responses sur ON sur.session_update_id = su.session_update_id
+    LEFT JOIN Bookings b ON sur.booking_id = b.booking_id
+    GROUP BY su.updation_type
+    ORDER BY declined_count DESC;
+END //
+DELIMITER ;
+
+-- 2) Members session change declined rate by service type
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE SessionChangeDeclinesByService ()
+BEGIN
+    SELECT
+    st.service_type_name,
+    COUNT(sur.response_id) AS total_members_affected,
+    COUNT(CASE WHEN sur.response_status = 'ACCEPTED' THEN sur.response_id END) AS accepted_count,
+    COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) AS declined_count,
+    COUNT(CASE WHEN sur.response_status = 'DECLINED' AND b.booking_status = 'CANCELLED'
+    THEN b.booking_id END) AS bookings_cancelled_due_to_change,
+    COUNT(CASE WHEN sur.response_status = 'PENDING' THEN sur.response_id END) AS pending,
+    ROUND(
+        COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) * 100
+        / NULLIF(COUNT(sur.response_id), 0),
+        2
+    ) AS decline_rate
+    FROM Session_updations su
+    JOIN Sessions s ON su.session_id = s.session_id
+    JOIN Service_Types st ON s.service_type_id = st.service_type_id
+    LEFT JOIN Session_updation_Responses sur ON sur.session_update_id = su.session_update_id
+    LEFT JOIN Bookings b ON sur.booking_id = b.booking_id
+    GROUP BY st.service_type_id, st.service_type_name
+    ORDER BY decline_rate DESC;
+END //
+DELIMITER ;
+
+-- 3) session change response dashboard
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE SessionChangeResponseDashboard ()
+BEGIN
+    SELECT
+    su.session_update_id,
+    s.session_id,
+    st.service_type_name,
+    su.updation_type,
+    su.updation_reason,
+    DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date,
+    COUNT(sur.response_id) AS notified_members,
+    COUNT(CASE WHEN sur.response_status = 'ACCEPTED' THEN sur.response_id END) AS accepted,
+    COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) AS declined,
+    COUNT(CASE WHEN sur.response_status = 'PENDING' THEN sur.response_id END) AS pending
+    FROM Session_updations su
+    JOIN Sessions s ON su.session_id = s.session_id
+    JOIN Service_Types st ON s.service_type_id = st.service_type_id
+    LEFT JOIN Session_updation_Responses sur ON sur.session_update_id = su.session_update_id
+    GROUP BY su.session_update_id
+    ORDER BY declined DESC, su.session_updated_at DESC;
+END //
+DELIMITER ;
+
+-- 4) Members who declined a session change (booking cancelled)
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE MembersWhoDeclinedSessionChanges ()
+BEGIN
+    SELECT
+    CONCAT(m.first_name, ' ', m.last_name) AS member_name,
+    st.service_type_name,b.booking_id,
+    su.updation_type,
+    DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date,
+    sur.response_reason AS decline_reason,
+    DATE_FORMAT(b.booking_cancelled_time, '%b %d, %Y') AS cancelled_on,
+    b.booking_status
+    FROM Session_updation_Responses sur
+    JOIN Session_updations su ON sur.session_update_id = su.session_update_id
+    JOIN Bookings b ON sur.booking_id = b.booking_id
+    JOIN Members m ON b.member_id = m.member_id
+    JOIN Sessions s ON b.session_id = s.session_id
+    JOIN Service_Types st ON s.service_type_id = st.service_type_id
+    WHERE sur.response_status = 'DECLINED'
+    ORDER BY b.booking_cancelled_time DESC;
+END //
+DELIMITER ;
+
+-- 5) Sessions most affected by a change (highest decline rate first)
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE MostAffectedSessionsAnalysis ()
+BEGIN
+    SELECT
+    s.session_id,
+    DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date,
+    st.service_type_name,su.updation_type,su.updation_reason,
+    COUNT(sur.response_id) AS notified_members,
+    COUNT(CASE WHEN sur.response_status = 'ACCEPTED' THEN sur.response_id END) AS accepted,
+    COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) AS declined,
+    COUNT(CASE WHEN sur.response_status = 'PENDING' THEN sur.response_id END) AS pending,
+    COUNT(CASE WHEN sur.response_status = 'DECLINED' AND b.booking_status = 'CANCELLED'
+    THEN b.booking_id END) AS bookings_cancelled_due_to_change,
+    ROUND(
+        COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) * 100
+        / NULLIF(COUNT(sur.response_id), 0),
+        2
+    ) AS decline_rate
+    FROM Session_updations su
+    JOIN Sessions s ON su.session_id = s.session_id
+    JOIN Service_Types st ON s.service_type_id = st.service_type_id
+    LEFT JOIN Session_updation_Responses sur ON sur.session_update_id = su.session_update_id
+    LEFT JOIN Bookings b ON sur.booking_id = b.booking_id
+    GROUP BY su.session_update_id, s.session_id, s.session_date,
+             st.service_type_name, su.updation_type, su.updation_reason
+    ORDER BY (decline_rate IS NULL), decline_rate DESC, declined DESC;
+END //
+DELIMITER ;
+
+-- 6) Members most affected by session changes
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE MostAffectedClientsAnalysis ()
+BEGIN
+    SELECT
+    b.member_id,
+    CONCAT(m.first_name, ' ', m.last_name) AS member_name,
+    COUNT(sur.response_id) AS total_change_notices,
+    COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) AS declined,
+    COUNT(CASE WHEN sur.response_status = 'ACCEPTED' THEN sur.response_id END) AS accepted,
+    COUNT(CASE WHEN sur.response_status = 'PENDING' THEN sur.response_id END) AS pending
+    FROM Session_updation_Responses sur
+    JOIN Bookings b ON sur.booking_id = b.booking_id
+    JOIN Members m ON b.member_id = m.member_id
+    GROUP BY b.member_id, m.first_name, m.last_name
+    ORDER BY declined DESC, total_change_notices DESC;
+END //
+DELIMITER ;
+
+
+-- 7) How many bookings were cancelled due to a session change in a year or specific month
+--     (month then year)
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE BookingsCancelledDueToSessionChange (IN p_month INT, IN p_year INT)
+BEGIN
+    SELECT
+    COUNT(b.booking_id) AS bookings_cancelled_due_to_change
+    FROM Session_updation_Responses sur
+    JOIN Bookings b ON sur.booking_id = b.booking_id
+    WHERE sur.response_status = 'DECLINED'
+      AND b.booking_status = 'CANCELLED'
+      AND b.booking_cancelled_time IS NOT NULL
+      AND (p_year IS NULL OR YEAR(b.booking_cancelled_time) = p_year)
+      AND (p_month IS NULL OR MONTH(b.booking_cancelled_time) = p_month);
+
+    SELECT
+    s.session_id,
+    DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date,
+    st.service_type_name,
+    su.updation_type,
+    COUNT(b.booking_id) AS bookings_cancelled_due_to_change
+    FROM Session_updation_Responses sur
+    JOIN Session_updations su ON sur.session_update_id = su.session_update_id
+    JOIN Bookings b ON sur.booking_id = b.booking_id
+    JOIN Sessions s ON b.session_id = s.session_id
+    JOIN Service_Types st ON s.service_type_id = st.service_type_id
+    WHERE sur.response_status = 'DECLINED'
+      AND b.booking_status = 'CANCELLED'
+      AND b.booking_cancelled_time IS NOT NULL
+      AND (p_year IS NULL OR YEAR(b.booking_cancelled_time) = p_year)
+      AND (p_month IS NULL OR MONTH(b.booking_cancelled_time) = p_month)
+    GROUP BY s.session_id, s.session_date, st.service_type_name, su.updation_type
+    ORDER BY bookings_cancelled_due_to_change DESC;
+END //
+DELIMITER ;
+
+
+-- 8) Members still pending a response after session changes
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE PendingSessionChangeResponses ()
+BEGIN
+    SELECT
+    CONCAT(m.first_name, ' ', m.last_name) AS member_name,
+    m.email_id,
+    st.service_type_name,b.booking_id,
+    su.updation_type,
+    DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date
+    FROM Session_updation_Responses sur
+    JOIN Bookings b ON sur.booking_id = b.booking_id
+    JOIN Members m ON b.member_id = m.member_id
+    JOIN Sessions s ON b.session_id = s.session_id
+    JOIN Service_Types st ON s.service_type_id = st.service_type_id
+    WHERE sur.response_status = 'PENDING'
+    ORDER BY b.booking_cancelled_time DESC;
+END //
+DELIMITER ;
 
 

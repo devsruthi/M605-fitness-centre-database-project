@@ -105,6 +105,8 @@ CREATE TABLE Bookings (
     session_id INT NOT NULL,
     booking_created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     booking_cancelled_time DATETIME,
+    booking_cancelled_reason VARCHAR(250),
+    booking_cancelled_by ENUM('MEMBER','SYSTEM') NOT NULL DEFAULT 'SYSTEM',
     booking_status ENUM ('BOOKED','CANCELLED') NOT NULL DEFAULT 'BOOKED',
     FOREIGN KEY(member_id) REFERENCES Members (member_id),
     FOREIGN KEY (session_id) REFERENCES Sessions (session_id),
@@ -145,6 +147,22 @@ CREATE TABLE Session_updation_Responses (
             response_status IN ('ACCEPTED', 'DECLINED') AND response_created_at IS NOT NULL
         )
     )
+);
+
+
+-- Maintaining Log (during trigger)
+CREATE TABLE Member_Details_Log (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    member_id INT NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email_id VARCHAR(150) NOT NULL,
+    phone_no VARCHAR(20),
+    date_of_birth DATE NOT NULL,
+    account_status ENUM('ACTIVE', 'INACTIVE') NOT NULL,
+    joining_date DATE NOT NULL,
+    logged_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (member_id) REFERENCES Members (member_id)
 );
 
 

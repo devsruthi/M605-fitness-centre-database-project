@@ -1,507 +1,656 @@
-INSERT INTO Members (first_name,last_name,email_id,password,phone_no,date_of_birth,account_status,joining_date)
+-- Seed data (today assumed around 2026-09-13)
+-- Subscription_Plans and Service_Types stay as the catalogue (fewer than 30 rows).
+-- Every other table has at least 30 rows.
+
+-- =====================================================================
+-- MEMBERS (30)
+-- 11, 12 never subscribed | 4, 10, 18 no ACTIVE plan | 13, 20 INACTIVE
+-- =====================================================================
+INSERT INTO Members (first_name, last_name, email_id, password, phone_no, date_of_birth, account_status, joining_date)
 VALUES
 ('Arun', 'Kumar', 'arun.kumar@example.com', 'Arun@123', '1512345678', '1999-03-12', 'ACTIVE', '2026-01-10'),
-
 ('Emma', 'Miller', 'emma.miller@example.com', 'Emma@123', '1523456789', '1997-07-24', 'ACTIVE', '2026-01-15'),
-
 ('Daniel', 'Brown', 'daniel.brown@example.com', 'Daniel@123', '1534567890', '2001-11-08', 'ACTIVE', '2025-02-01'),
-
-('Anna', 'Schmidt', 'anna.schmidt@example.com', 'Anna@123', '1545678901', '1998-05-19', 'ACTIVE', '2026-02-10'),
-
+('Anna', 'Schmidt', 'anna.schmidt@example.com', 'Anna@123', '1545678901', '1998-05-19', 'ACTIVE', '2024-02-10'),
 ('Rahul', 'Menon', 'rahul.menon@example.com', 'Rahul@123', '1556789012', '1996-09-03', 'ACTIVE', '2026-03-05'),
-
 ('Sofia', 'Weber', 'sofia.weber@example.com', 'Sofia@123', '1567890123', '2000-12-21', 'ACTIVE', '2026-03-18'),
-
 ('Michael', 'Wilson', 'michael.wilson@example.com', 'Michael@123', '1578901234', '1995-04-14', 'ACTIVE', '2026-04-02'),
-
 ('Nina', 'Fischer', 'nina.fischer@example.com', 'Nina@123', '1589012345', '2002-08-30', 'ACTIVE', '2025-04-20'),
-
 ('David', 'Thomas', 'david.thomas@example.com', 'David@123', '1590123456', '1999-10-11', 'ACTIVE', '2026-05-08'),
+('Laura', 'Becker', 'laura.becker@example.com', 'Laura@123', '1601234567', '1997-02-27', 'ACTIVE', '2026-04-15'),
+('Jonas', 'Klein', 'jonas.klein@example.com', 'Jonas@123', '1612345678', '1994-06-11', 'ACTIVE', '2026-08-01'),
+('Priya', 'Nair', 'priya.nair@example.com', 'Priya@123', '1623456789', '1998-01-22', 'ACTIVE', '2026-08-12'),
+('Tom', 'Hughes', 'tom.hughes@example.com', 'Tom@123', '1634567890', '1993-09-09', 'INACTIVE', '2025-06-01'),
+('Clara', 'Hoffmann', 'clara.hoffmann@example.com', 'Clara@123', '1645678901', '1996-12-02', 'ACTIVE', '2026-04-01'),
+('Omar', 'Hassan', 'omar.hassan@example.com', 'Omar@123', '1656789012', '2000-03-30', 'ACTIVE', '2026-08-18'),
+('Lena', 'Vogt', 'lena.vogt@example.com', 'Lena@123', '1667890123', '1997-11-14', 'ACTIVE', '2026-01-20'),
+('Ben', 'Carter', 'ben.carter@example.com', 'Ben@123', '1678901234', '1995-08-08', 'ACTIVE', '2026-07-01'),
+('Maya', 'Singh', 'maya.singh@example.com', 'Maya@123', '1689012345', '1999-05-05', 'ACTIVE', '2026-09-08'),
+('Felix', 'Braun', 'felix.braun@example.com', 'Felix@123', '1690123456', '2001-02-17', 'ACTIVE', '2026-09-01'),
+('Sophie', 'Laurent', 'sophie.laurent@example.com', 'Sophie@123', '1701234567', '1992-07-19', 'INACTIVE', '2025-01-01'),
+('Hannah', 'Berg', 'hannah.berg@example.com', 'Hannah@123', '1712345678', '1998-04-04', 'ACTIVE', '2026-02-14'),
+('Luca', 'Rossi', 'luca.rossi@example.com', 'Luca@123', '1723456789', '1996-08-21', 'ACTIVE', '2026-03-22'),
+('Ingrid', 'Berg', 'ingrid.berg@example.com', 'Ingrid@123', '1734567890', '1994-11-03', 'ACTIVE', '2025-09-01'),
+('Noah', 'Keller', 'noah.keller@example.com', 'Noah@123', '1745678901', '2000-01-19', 'ACTIVE', '2026-05-20'),
+('Aisha', 'Rahman', 'aisha.rahman@example.com', 'Aisha@123', '1756789012', '1997-06-28', 'ACTIVE', '2026-06-08'),
+('Paul', 'Richter', 'paul.richter@example.com', 'Paul@123', '1767890123', '1995-10-16', 'ACTIVE', '2026-01-28'),
+('Yuki', 'Tanaka', 'yuki.tanaka@example.com', 'Yuki@123', '1778901234', '1999-09-09', 'ACTIVE', '2026-07-18'),
+('Elena', 'Popov', 'elena.popov@example.com', 'Elena@123', '1789012345', '1993-03-25', 'ACTIVE', '2025-11-11'),
+('Marcus', 'Lee', 'marcus.lee@example.com', 'Marcus@123', '1790123456', '1998-12-12', 'ACTIVE', '2026-04-28'),
+('Greta', 'Holm', 'greta.holm@example.com', 'Greta@123', '1801234567', '2001-07-07', 'ACTIVE', '2026-08-22');
 
-('Laura', 'Becker', 'laura.becker@example.com', 'Laura@123', '1601234567', '1997-02-27', 'ACTIVE', '2026-09-05');
 
-
+-- =====================================================================
+-- SUBSCRIPTION PLANS (unchanged catalogue)
+-- =====================================================================
 INSERT INTO Subscription_Plans (
-    plan_name,
-    duration_in_months,
-    plan_price,
-    plan_description,
-    plan_status,
-    group_classes_access,
-    personal_training_access,
-    exclusive_services
+    plan_name, duration_in_months, plan_price, plan_description,
+    plan_status, group_classes_access, personal_training_access, exclusive_services
 )
 VALUES
 ('Classic', 1, 29.99,
  'Basic membership with unlimited group class access.',
  'ACTIVE', TRUE, FALSE, FALSE),
- 
 ('Premium', 6, 149.99,
  'Premium membership with unlimited group classes and personal training.',
  'ACTIVE', TRUE, TRUE, FALSE),
- 
 ('Gold', 12, 399.99,
  'Gold membership with personal training, group classes and exclusive services.',
  'ACTIVE', TRUE, TRUE, TRUE);
- 
-INSERT INTO Member_Subscriptions (
-    member_id,
-    plan_id,
-    start_date,
-    subscription_status
-)
-VALUES
 
--- Member 1: Classic expired → Premium active
+
+-- =====================================================================
+-- MEMBER SUBSCRIPTIONS (34)
+-- =====================================================================
+INSERT INTO Member_Subscriptions (member_id, plan_id, start_date, subscription_status)
+VALUES
 (1, 1, '2026-01-10', 'EXPIRED'),
 (1, 2, '2026-07-10', 'ACTIVE'),
-
--- Member 2: Premium expired → Gold active
 (2, 2, '2025-01-15', 'EXPIRED'),
 (2, 3, '2026-03-15', 'ACTIVE'),
-
--- Member 3: Classic cancelled → Premium active
 (3, 1, '2026-02-01', 'CANCELLED'),
 (3, 2, '2026-05-01', 'ACTIVE'),
-
--- Member 4: Gold expired
 (4, 3, '2024-01-10', 'EXPIRED'),
-
--- Member 5: Classic currently active
-(5, 1, '2026-08-20', 'ACTIVE'),
-
--- Member 6: Premium currently active
+(5, 1, '2026-08-16', 'ACTIVE'),
 (6, 2, '2026-06-15', 'ACTIVE'),
-
--- Member 7: Gold currently active
 (7, 3, '2026-03-10', 'ACTIVE'),
-
--- Member 8: Classic expired → Gold active
 (8, 1, '2026-02-20', 'EXPIRED'),
 (8, 3, '2026-03-01', 'ACTIVE'),
-
--- Member 9: Premium cancelled → Classic active
 (9, 2, '2026-01-01', 'CANCELLED'),
-(9, 1, '2026-08-01', 'ACTIVE'),
+(9, 1, '2026-08-25', 'ACTIVE'),
+(10, 1, '2026-04-15', 'CANCELLED'),
+(14, 2, '2026-04-01', 'ACTIVE'),
+(15, 1, '2026-08-18', 'ACTIVE'),
+(16, 3, '2026-01-20', 'ACTIVE'),
+(17, 2, '2026-07-01', 'ACTIVE'),
+(18, 1, '2026-09-10', 'PENDING'),
+(19, 1, '2026-09-01', 'ACTIVE'),
+(20, 3, '2025-01-01', 'EXPIRED'),
+(4, 1, '2025-06-01', 'EXPIRED'),
+(7, 1, '2025-02-10', 'EXPIRED'),
+(21, 2, '2026-02-14', 'ACTIVE'),
+(22, 1, '2026-08-22', 'ACTIVE'),
+(23, 3, '2025-09-01', 'ACTIVE'),
+(24, 2, '2026-05-20', 'ACTIVE'),
+(25, 1, '2026-08-20', 'ACTIVE'),
+(26, 3, '2026-01-28', 'ACTIVE'),
+(27, 2, '2026-07-18', 'ACTIVE'),
+(28, 3, '2025-11-11', 'ACTIVE'),
+(29, 1, '2026-08-28', 'ACTIVE'),
+(30, 2, '2026-08-22', 'ACTIVE');
 
--- Member 10: Classic cancelled
-(10, 1, '2026-04-15', 'CANCELLED');
 
-
-INSERT INTO Payments (
-    subscription_id,
-    payment_date,
-    payment_amount,
-    payment_method,
-    payment_status
-)
+-- =====================================================================
+-- PAYMENTS (48)
+-- =====================================================================
+INSERT INTO Payments (subscription_id, payment_date, payment_amount, payment_method, payment_status)
 VALUES
-
--- =====================================================
--- MEMBER 1
--- Classic EXPIRED → Premium ACTIVE
--- =====================================================
-
 (1, '2026-01-10', 29.99, 'CREDIT_CARD', 'SUCCESS'),
-
-(2, '2026-07-10', 149.99, 'PAYPAL', 'SUCCESS'),
-
 (2, '2026-07-09', 149.99, 'CREDIT_CARD', 'FAILED'),
-
--- =====================================================
--- MEMBER 2
--- Premium EXPIRED → Gold ACTIVE
--- =====================================================
-
-(3, '2025-01-15', 149.99, 'DEBIT_CARD', 'SUCCESS'),
-
-(4, '2026-03-15', 399.99, 'BANK_TRANSFER', 'SUCCESS'),
-
--- =====================================================
--- MEMBER 3
--- Classic CANCELLED → Premium ACTIVE
--- =====================================================
-
-(5, '2026-02-01', 29.99, 'CREDIT_CARD', 'SUCCESS'),
-
-(6, '2026-05-01', 149.99, 'PAYPAL', 'SUCCESS'),
-
-(6, '2026-04-30', 149.99, 'DEBIT_CARD', 'FAILED'),
-
--- =====================================================
--- MEMBER 4
--- Gold EXPIRED
--- =====================================================
-
-(7, '2024-01-10', 399.99, 'BANK_TRANSFER', 'SUCCESS'),
-
--- =====================================================
--- MEMBER 5
--- Classic ACTIVE
--- =====================================================
-
-(8, '2026-08-20', 29.99, 'CREDIT_CARD', 'SUCCESS'),
-
--- =====================================================
--- MEMBER 6
--- Premium ACTIVE
--- =====================================================
-
-(9, '2026-06-15', 149.99, 'PAYPAL', 'SUCCESS'),
-
-(9, '2026-06-14', 149.99, 'CREDIT_CARD', 'FAILED'),
-
--- =====================================================
--- MEMBER 7
--- Gold ACTIVE
--- =====================================================
-
-(10, '2026-03-10', 399.99, 'BANK_TRANSFER', 'SUCCESS'),
-
--- =====================================================
--- MEMBER 8
--- Classic EXPIRED → Gold ACTIVE
--- =====================================================
-
-(11, '2026-02-20', 29.99, 'DEBIT_CARD', 'SUCCESS'),
-
-(12, '2026-03-01', 399.99, 'CREDIT_CARD', 'SUCCESS'),
-
--- =====================================================
--- MEMBER 9
--- Premium CANCELLED → Classic ACTIVE
--- =====================================================
-
-(13, '2026-01-01', 149.99, 'PAYPAL', 'SUCCESS'),
-
-(14, '2026-08-01', 29.99, 'CREDIT_CARD', 'SUCCESS'),
-
-(14, '2026-07-31', 29.99, 'CREDIT_CARD', 'FAILED'),
-
--- =====================================================
--- MEMBER 10
--- Classic CANCELLED
--- =====================================================
-
-(15, '2026-04-15', 29.99, 'DEBIT_CARD', 'SUCCESS'),
-
--- =====================================================
--- ADDITIONAL PAYMENT ATTEMPTS
--- =====================================================
-
+(2, '2026-07-10', 149.99, 'PAYPAL', 'SUCCESS'),
 (2, '2026-07-10', 149.99, 'BANK_TRANSFER', 'PENDING'),
-
+(3, '2025-01-15', 149.99, 'DEBIT_CARD', 'SUCCESS'),
 (4, '2026-03-14', 399.99, 'BANK_TRANSFER', 'PENDING'),
-
-(8, '2026-08-19', 29.99, 'PAYPAL', 'FAILED'),
-
+(4, '2026-03-15', 399.99, 'BANK_TRANSFER', 'SUCCESS'),
+(5, '2026-02-01', 29.99, 'CREDIT_CARD', 'SUCCESS'),
+(6, '2026-04-30', 149.99, 'DEBIT_CARD', 'FAILED'),
+(6, '2026-05-01', 149.99, 'PAYPAL', 'SUCCESS'),
+(7, '2024-01-10', 399.99, 'BANK_TRANSFER', 'SUCCESS'),
+(23, '2025-06-01', 29.99, 'CREDIT_CARD', 'SUCCESS'),
+(8, '2026-08-16', 29.99, 'CREDIT_CARD', 'SUCCESS'),
+(8, '2026-08-15', 29.99, 'PAYPAL', 'FAILED'),
+(9, '2026-06-14', 149.99, 'CREDIT_CARD', 'FAILED'),
+(9, '2026-06-15', 149.99, 'PAYPAL', 'SUCCESS'),
 (10, '2026-03-09', 399.99, 'CREDIT_CARD', 'FAILED'),
+(10, '2026-03-10', 399.99, 'BANK_TRANSFER', 'SUCCESS'),
+(24, '2025-02-10', 29.99, 'DEBIT_CARD', 'SUCCESS'),
+(11, '2026-02-20', 29.99, 'DEBIT_CARD', 'SUCCESS'),
+(12, '2026-03-01', 399.99, 'CREDIT_CARD', 'SUCCESS'),
+(12, '2026-03-01', 399.99, 'BANK_TRANSFER', 'PENDING'),
+(13, '2026-01-01', 149.99, 'PAYPAL', 'SUCCESS'),
+(14, '2026-08-24', 29.99, 'CREDIT_CARD', 'FAILED'),
+(14, '2026-08-25', 29.99, 'CREDIT_CARD', 'SUCCESS'),
+(15, '2026-04-15', 29.99, 'DEBIT_CARD', 'SUCCESS'),
+(16, '2026-03-28', 149.99, 'CREDIT_CARD', 'FAILED'),
+(16, '2026-03-29', 149.99, 'CREDIT_CARD', 'FAILED'),
+(16, '2026-03-30', 149.99, 'DEBIT_CARD', 'FAILED'),
+(16, '2026-04-01', 149.99, 'PAYPAL', 'SUCCESS'),
+(17, '2026-08-18', 29.99, 'CREDIT_CARD', 'SUCCESS'),
+(18, '2026-01-20', 399.99, 'BANK_TRANSFER', 'SUCCESS'),
+(19, '2026-07-01', 149.99, 'PAYPAL', 'SUCCESS'),
+(21, '2026-09-01', 29.99, 'DEBIT_CARD', 'SUCCESS'),
+(22, '2025-01-01', 399.99, 'CREDIT_CARD', 'SUCCESS'),
+(2, '2026-02-12', 149.99, 'PAYPAL', 'FAILED'),
+(9, '2026-04-02', 149.99, 'BANK_TRANSFER', 'SUCCESS'),
+(18, '2026-09-05', 399.99, 'CREDIT_CARD', 'FAILED'),
+(25, '2026-02-14', 149.99, 'PAYPAL', 'SUCCESS'),
+(26, '2026-08-22', 29.99, 'CREDIT_CARD', 'SUCCESS'),
+(27, '2025-09-01', 399.99, 'BANK_TRANSFER', 'SUCCESS'),
+(28, '2026-05-20', 149.99, 'DEBIT_CARD', 'SUCCESS'),
+(29, '2026-08-20', 29.99, 'PAYPAL', 'SUCCESS'),
+(30, '2026-01-28', 399.99, 'CREDIT_CARD', 'SUCCESS'),
+(31, '2026-07-18', 149.99, 'BANK_TRANSFER', 'SUCCESS'),
+(32, '2025-11-11', 399.99, 'PAYPAL', 'SUCCESS'),
+(33, '2026-08-28', 29.99, 'DEBIT_CARD', 'SUCCESS'),
+(34, '2026-08-22', 149.99, 'CREDIT_CARD', 'SUCCESS'),
 
-(12, '2026-03-01', 399.99, 'BANK_TRANSFER', 'PENDING');
+-- Extra FAILED rows so several members appear in
+-- "failed payments more than 2 times" (each has 4+ failures)
+(2, '2026-07-07', 149.99, 'CREDIT_CARD', 'FAILED'),
+(2, '2026-07-08', 149.99, 'DEBIT_CARD', 'FAILED'),
+(6, '2026-04-28', 149.99, 'CREDIT_CARD', 'FAILED'),
+(6, '2026-04-29', 149.99, 'PAYPAL', 'FAILED'),
+(6, '2026-04-27', 149.99, 'BANK_TRANSFER', 'FAILED'),
+(9, '2026-06-12', 149.99, 'CREDIT_CARD', 'FAILED'),
+(9, '2026-06-13', 149.99, 'DEBIT_CARD', 'FAILED'),
+(9, '2026-06-11', 149.99, 'PAYPAL', 'FAILED'),
+(10, '2026-03-07', 399.99, 'CREDIT_CARD', 'FAILED'),
+(10, '2026-03-08', 399.99, 'DEBIT_CARD', 'FAILED'),
+(10, '2026-03-06', 399.99, 'PAYPAL', 'FAILED'),
+(14, '2026-08-22', 29.99, 'CREDIT_CARD', 'FAILED'),
+(14, '2026-08-23', 29.99, 'DEBIT_CARD', 'FAILED'),
+(14, '2026-08-21', 29.99, 'PAYPAL', 'FAILED'),
+(16, '2026-03-27', 149.99, 'BANK_TRANSFER', 'FAILED'),
+(25, '2026-02-11', 149.99, 'CREDIT_CARD', 'FAILED'),
+(25, '2026-02-12', 149.99, 'DEBIT_CARD', 'FAILED'),
+(25, '2026-02-13', 149.99, 'PAYPAL', 'FAILED'),
+(25, '2026-02-10', 149.99, 'BANK_TRANSFER', 'FAILED');
 
+
+-- =====================================================================
+-- SERVICE TYPES (catalogue — not expanded to 30)
+-- 15 = no sessions | 11 = sessions but no bookings
+-- =====================================================================
 INSERT INTO Service_Types (
-    service_type_name,
-    service_type_description,
-    service_mode,
-    max_participants,
-    service_type_status
+    service_type_name, service_type_description, service_mode, max_participants, service_type_status
 )
 VALUES
+('Yoga', 'Group yoga sessions focused on flexibility, balance and relaxation.', 'GROUP', 20, 'ACTIVE'),
+('Power Yoga', 'Dynamic yoga sessions combining strength, flexibility and movement.', 'GROUP', 15, 'ACTIVE'),
+('Pilates', 'Group sessions focused on core strength, posture and flexibility.', 'GROUP', 15, 'ACTIVE'),
+('HIIT', 'High-intensity interval training for improving fitness and endurance.', 'GROUP', 16, 'ACTIVE'),
+('CrossFit', 'Functional fitness sessions combining strength and conditioning exercises.', 'GROUP', 12, 'ACTIVE'),
+('Zumba', 'High-energy group dance fitness sessions.', 'GROUP', 20, 'ACTIVE'),
+('Spin Cycling', 'Indoor cycling sessions designed to improve cardiovascular fitness.', 'GROUP', 18, 'ACTIVE'),
+('Strength Training', 'Group strength and conditioning sessions using resistance exercises.', 'GROUP', 12, 'ACTIVE'),
+('Mobility & Stretching', 'Group sessions focused on mobility, flexibility and recovery.', 'GROUP', 15, 'ACTIVE'),
+('Meditation', 'Guided group meditation sessions for relaxation and mental wellness.', 'GROUP', 15, 'ACTIVE'),
+('Fitness Workshop', 'Special group workshops focused on fitness techniques and education.', 'GROUP', 20, 'ACTIVE'),
+('Personal Training', 'One-to-one training sessions with a professional trainer.', 'PERSONAL', 1, 'ACTIVE'),
+('Nutrition Consultation', 'Individual consultation focused on nutrition and wellness goals.', 'PERSONAL', 1, 'ACTIVE'),
+('Fitness Assessment', 'Individual assessment of fitness level, goals and physical performance.', 'PERSONAL', 1, 'ACTIVE'),
+('Wellness Consultation', 'Individual consultation focused on lifestyle and overall wellness.', 'PERSONAL', 1, 'ACTIVE');
 
--- GROUP SERVICES
-('Yoga',
- 'Group yoga sessions focused on flexibility, balance and relaxation.',
- 'GROUP', 20, 'ACTIVE'),
 
-('Power Yoga',
- 'Dynamic yoga sessions combining strength, flexibility and movement.',
- 'GROUP', 15, 'ACTIVE'),
-
-('Pilates',
- 'Group sessions focused on core strength, posture and flexibility.',
- 'GROUP', 15, 'ACTIVE'),
-
-('HIIT',
- 'High-intensity interval training for improving fitness and endurance.',
- 'GROUP', 16, 'ACTIVE'),
-
-('CrossFit',
- 'Functional fitness sessions combining strength and conditioning exercises.',
- 'GROUP', 12, 'ACTIVE'),
-
-('Zumba',
- 'High-energy group dance fitness sessions.',
- 'GROUP', 20, 'ACTIVE'),
-
-('Spin Cycling',
- 'Indoor cycling sessions designed to improve cardiovascular fitness.',
- 'GROUP', 18, 'ACTIVE'),
-
-('Strength Training',
- 'Group strength and conditioning sessions using resistance exercises.',
- 'GROUP', 12, 'ACTIVE'),
-
-('Mobility & Stretching',
- 'Group sessions focused on mobility, flexibility and recovery.',
- 'GROUP', 15, 'ACTIVE'),
-
-('Meditation',
- 'Guided group meditation sessions for relaxation and mental wellness.',
- 'GROUP', 15, 'ACTIVE'),
-
-('Fitness Workshop',
- 'Special group workshops focused on fitness techniques and education.',
- 'GROUP', 20, 'ACTIVE'),
-
--- PERSONAL SERVICES
-('Personal Training',
- 'One-to-one training sessions with a professional trainer.',
- 'PERSONAL', 1, 'ACTIVE'),
-
-('Nutrition Consultation',
- 'Individual consultation focused on nutrition and wellness goals.',
- 'PERSONAL', 1, 'ACTIVE'),
-
-('Fitness Assessment',
- 'Individual assessment of fitness level, goals and physical performance.',
- 'PERSONAL', 1, 'ACTIVE'),
-
-('Wellness Consultation',
- 'Individual consultation focused on lifestyle and overall wellness.',
- 'PERSONAL', 1, 'ACTIVE');
- 
+-- =====================================================================
+-- TRAINERS (30)
+-- =====================================================================
 INSERT INTO Trainers (
-    first_name,
-    last_name,
-    email_id,
-    phone_no,
-    city,
-    total_experience_years,
-    hired_date
+    first_name, last_name, email_id, phone_no, city, total_experience_years, account_status, hired_date
 )
 VALUES
+('Oliver', 'Hart', 'oliver.hart@wellness.de', '4915112345601', 'Berlin', 8, 'ACTIVE', '2023-02-15'),
+('Charlotte', 'Bennett', 'charlotte.bennett@wellness.de', '4915123456702', 'Hamburg', 6, 'ACTIVE', '2024-05-10'),
+('Ethan', 'Carter', 'ethan.carter@wellness.de', '4915134567803', 'Munich', 10, 'ACTIVE', '2022-08-21'),
+('Amelia', 'Brooks', 'amelia.brooks@wellness.de', '4915145678904', 'Berlin', 5, 'ACTIVE', '2025-01-13'),
+('Henry', 'Collins', 'henry.collins@wellness.de', '4915156789005', 'Cologne', 7, 'ACTIVE', '2024-03-18'),
+('Grace', 'Mitchell', 'grace.mitchell@wellness.de', '4915167890106', 'Frankfurt', 9, 'ACTIVE', '2023-11-06'),
+('Arthur', 'Turner', 'arthur.turner@wellness.de', '4915178901207', 'Berlin', 12, 'ACTIVE', '2022-06-20'),
+('Isla', 'Morgan', 'isla.morgan@wellness.de', '4915189012308', 'Stuttgart', 4, 'ACTIVE', '2025-02-03'),
+('George', 'Parker', 'george.parker@wellness.de', '4915190123409', 'Dusseldorf', 6, 'ACTIVE', '2024-07-15'),
+('Lily', 'Cooper', 'lily.cooper@wellness.de', '4915201234510', 'Leipzig', 8, 'INACTIVE', '2023-09-11'),
+('Emily', 'Foster', 'emily.foster@wellness.de', '4915212345611', 'Berlin', 5, 'ACTIVE', '2025-03-24'),
+('William', 'Hughes', 'william.hughes@wellness.de', '4915223456712', 'Hamburg', 7, 'ACTIVE', '2024-01-29'),
+('Ella', 'Ward', 'ella.ward@wellness.de', '4915234567813', 'Cologne', 4, 'ACTIVE', '2025-04-07'),
+('James', 'Morris', 'james.morris@wellness.de', '4915245678914', 'Frankfurt', 9, 'ACTIVE', '2023-05-22'),
+('Chloe', 'Perry', 'chloe.perry@wellness.de', '4915256789015', 'Berlin', 6, 'ACTIVE', '2024-09-02'),
+('Alexander', 'Reed', 'alexander.reed@wellness.de', '4915267890116', 'Stuttgart', 10, 'ACTIVE', '2023-02-13'),
+('Lucy', 'Watson', 'lucy.watson@wellness.de', '4915278901217', 'Dusseldorf', 5, 'ACTIVE', '2025-05-19'),
+('Thomas', 'Bailey', 'thomas.bailey@wellness.de', '4915289012318', 'Leipzig', 8, 'ACTIVE', '2024-06-10'),
+('Hannah', 'Murphy', 'hannah.murphy@wellness.de', '4915290123419', 'Berlin', 13, 'ACTIVE', '2022-04-25'),
+('Jack', 'Edwards', 'jack.edwards@wellness.de', '4915301234520', 'Munich', 11, 'ACTIVE', '2022-10-17'),
+('Nora', 'Schmidt', 'nora.schmidt@wellness.de', '4915312345621', 'Hamburg', 6, 'ACTIVE', '2024-11-08'),
+('Felix', 'Jung', 'felix.jung@wellness.de', '4915323456722', 'Berlin', 7, 'ACTIVE', '2023-07-14'),
+('Amara', 'Okonkwo', 'amara.okonkwo@wellness.de', '4915334567823', 'Frankfurt', 8, 'ACTIVE', '2024-02-02'),
+('Leo', 'Schneider', 'leo.schneider@wellness.de', '4915345678924', 'Cologne', 5, 'ACTIVE', '2025-06-16'),
+('Pia', 'Hoffmann', 'pia.hoffmann@wellness.de', '4915356789025', 'Stuttgart', 4, 'ACTIVE', '2025-08-01'),
+('Samir', 'Patel', 'samir.patel@wellness.de', '4915367890126', 'Munich', 9, 'ACTIVE', '2023-03-30'),
+('Greta', 'Wolff', 'greta.wolff@wellness.de', '4915378901227', 'Leipzig', 6, 'ACTIVE', '2024-08-19'),
+('Ivan', 'Petrov', 'ivan.petrov@wellness.de', '4915389012328', 'Berlin', 10, 'ACTIVE', '2022-12-05'),
+('Maja', 'Nowak', 'maja.nowak@wellness.de', '4915390123429', 'Hamburg', 5, 'INACTIVE', '2025-07-21'),
+('Kenji', 'Sato', 'kenji.sato@wellness.de', '4915401234530', 'Dusseldorf', 8, 'ACTIVE', '2023-09-28');
 
-('Oliver', 'Hart', 'oliver.hart@wellness.de', '4915112345601', 'Berlin', 8, '2024-02-15'),
 
-('Charlotte', 'Bennett', 'charlotte.bennett@wellness.de', '4915123456702', 'Hamburg', 6, '2024-05-10'),
-
-('Ethan', 'Carter', 'ethan.carter@wellness.de', '4915134567803', 'Munich', 10, '2023-08-21'),
-
-('Amelia', 'Brooks', 'amelia.brooks@wellness.de', '4915145678904', 'Berlin', 5, '2025-01-13'),
-
-('Henry', 'Collins', 'henry.collins@wellness.de', '4915156789005', 'Cologne', 7, '2024-03-18'),
-
-('Grace', 'Mitchell', 'grace.mitchell@wellness.de', '4915167890106', 'Frankfurt', 9, '2023-11-06'),
-
-('Arthur', 'Turner', 'arthur.turner@wellness.de', '4915178901207', 'Berlin', 12, '2022-06-20'),
-
-('Isla', 'Morgan', 'isla.morgan@wellness.de', '4915189012308', 'Stuttgart', 4, '2025-02-03'),
-
-('George', 'Parker', 'george.parker@wellness.de', '4915190123409', 'Dusseldorf', 6, '2024-07-15'),
-
-('Lily', 'Cooper', 'lily.cooper@wellness.de', '4915201234510', 'Leipzig', 8, '2023-09-11'),
-
-('Jack', 'Edwards', 'jack.edwards@wellness.de', '4915212345611', 'Berlin', 11, '2022-10-17'),
-
-('Emily', 'Foster', 'emily.foster@wellness.de', '4915223456712', 'Hamburg', 5, '2025-03-24'),
-
-('William', 'Hughes', 'william.hughes@wellness.de', '4915234567813', 'Munich', 7, '2024-01-29'),
-
-('Ella', 'Ward', 'ella.ward@wellness.de', '4915245678914', 'Cologne', 4, '2025-04-07'),
-
-('James', 'Morris', 'james.morris@wellness.de', '4915256789015', 'Frankfurt', 9, '2023-05-22'),
-
-('Chloe', 'Perry', 'chloe.perry@wellness.de', '4915267890116', 'Berlin', 6, '2024-09-02'),
-
-('Alexander', 'Reed', 'alexander.reed@wellness.de', '4915278901217', 'Stuttgart', 10, '2023-02-13'),
-
-('Lucy', 'Watson', 'lucy.watson@wellness.de', '4915289012318', 'Dusseldorf', 5, '2025-05-19'),
-
-('Thomas', 'Bailey', 'thomas.bailey@wellness.de', '4915290123419', 'Leipzig', 8, '2024-06-10'),
-
-('Hannah', 'Murphy', 'hannah.murphy@wellness.de', '4915301234520', 'Berlin', 13, '2022-04-25');
-
+-- =====================================================================
+-- SESSIONS (48)  past + upcoming through 2028
+-- =====================================================================
 INSERT INTO Sessions (
-    service_type_id,
-    trainer_id,
-    session_date,
-    start_time,
-    duration_in_minutes,
-    session_mode,
-    session_room,
-    session_status
+    service_type_id, trainer_id, session_date, start_time, duration_in_minutes,
+    session_mode, session_room, session_cancelled_time, session_cancelled_reason, session_status
 )
 VALUES
+(1, 1, '2025-11-05', '08:00:00', 60, 'OFFLINE', 'Studio A', NULL, NULL, 'COMPLETED'),
+(2, 2, '2025-12-10', '10:00:00', 60, 'OFFLINE', 'Fitness Hall', NULL, NULL, 'COMPLETED'),
+(12, 3, '2026-01-12', '14:00:00', 60, 'OFFLINE', 'PT Room 1', NULL, NULL, 'COMPLETED'),
+(3, 1, '2026-02-08', '09:00:00', 60, 'ONLINE', NULL, NULL, NULL, 'COMPLETED'),
+(4, 4, '2026-03-15', '18:00:00', 75, 'OFFLINE', 'Training Room', NULL, NULL, 'COMPLETED'),
+(6, 5, '2026-04-20', '08:30:00', 60, 'OFFLINE', 'Dance Studio', NULL, NULL, 'COMPLETED'),
+(1, 1, '2026-05-10', '08:00:00', 60, 'OFFLINE', 'Studio A', NULL, NULL, 'COMPLETED'),
+(5, 4, '2026-06-12', '18:00:00', 60, 'OFFLINE', 'CrossFit Zone', NULL, NULL, 'COMPLETED'),
+(8, 6, '2026-07-08', '09:00:00', 60, 'OFFLINE', 'Strength Room', NULL, NULL, 'COMPLETED'),
+(12, 3, '2026-08-05', '11:00:00', 60, 'OFFLINE', 'PT Room 1', NULL, NULL, 'COMPLETED'),
+(10, 7, '2026-08-20', '17:00:00', 45, 'ONLINE', NULL, NULL, NULL, 'COMPLETED'),
+(1, 1, '2026-09-02', '08:00:00', 60, 'OFFLINE', 'Studio A', NULL, NULL, 'COMPLETED'),
+(5, 4, '2026-08-18', '18:00:00', 60, 'OFFLINE', 'CrossFit Zone', '2026-08-16 10:00:00', 'Trainer illness', 'CANCELLED'),
+(12, 8, '2026-08-22', '11:00:00', 60, 'OFFLINE', 'PT Room 2', '2026-08-20 09:30:00', 'Slot withdrawn', 'CANCELLED'),
+(1, 1, '2026-09-20', '08:00:00', 60, 'OFFLINE', 'Studio A', NULL, NULL, 'SCHEDULED'),
+(2, 2, '2026-09-25', '10:00:00', 60, 'OFFLINE', 'Studio B', NULL, NULL, 'SCHEDULED'),
+(3, 1, '2026-10-02', '09:00:00', 60, 'OFFLINE', 'Studio B', NULL, NULL, 'SCHEDULED'),
+(4, 4, '2026-10-08', '18:00:00', 75, 'OFFLINE', 'Training Room', NULL, NULL, 'SCHEDULED'),
+(5, 6, '2026-10-10', '18:00:00', 60, 'OFFLINE', 'CrossFit Zone', NULL, NULL, 'SCHEDULED'),
+(6, 5, '2026-10-12', '08:30:00', 60, 'OFFLINE', 'Dance Studio', NULL, NULL, 'SCHEDULED'),
+(7, 7, '2026-10-15', '17:30:00', 45, 'OFFLINE', 'Cycling Room', NULL, NULL, 'SCHEDULED'),
+(8, 6, '2026-10-18', '09:00:00', 60, 'OFFLINE', 'Strength Room', NULL, NULL, 'SCHEDULED'),
+(12, 3, '2026-10-20', '10:00:00', 60, 'OFFLINE', 'PT Room 1', NULL, NULL, 'SCHEDULED'),
+(1, 1, '2026-10-22', '08:00:00', 60, 'OFFLINE', 'Studio A', NULL, NULL, 'SCHEDULED'),
+(1, 1, '2026-11-04', '09:00:00', 60, 'OFFLINE', 'Studio A', NULL, NULL, 'SCHEDULED'),
+(2, 2, '2026-11-08', '17:00:00', 60, 'OFFLINE', 'Fitness Hall', NULL, NULL, 'SCHEDULED'),
+(4, 4, '2026-11-12', '18:00:00', 75, 'OFFLINE', 'Training Room', NULL, NULL, 'SCHEDULED'),
+(12, 3, '2026-11-15', '10:00:00', 60, 'OFFLINE', 'PT Room 1', NULL, NULL, 'SCHEDULED'),
+(13, 8, '2026-11-18', '13:00:00', 45, 'ONLINE', NULL, NULL, NULL, 'SCHEDULED'),
+(14, 9, '2026-11-22', '15:00:00', 60, 'OFFLINE', 'Assessment Room', NULL, NULL, 'SCHEDULED'),
+(6, 5, '2026-10-28', '08:30:00', 60, 'OFFLINE', 'Dance Studio', '2026-09-10 11:00:00', 'Studio closed for maintenance', 'CANCELLED'),
+(1, 1, '2026-12-05', '08:00:00', 60, 'OFFLINE', 'Studio A', NULL, NULL, 'SCHEDULED'),
+(10, 7, '2026-12-12', '17:00:00', 45, 'ONLINE', NULL, NULL, NULL, 'SCHEDULED'),
+(11, 2, '2026-12-15', '10:00:00', 90, 'OFFLINE', 'Studio A', NULL, NULL, 'SCHEDULED'),
+(1, 1, '2027-03-10', '08:00:00', 60, 'OFFLINE', 'Studio A', NULL, NULL, 'SCHEDULED'),
+(4, 4, '2027-06-15', '18:00:00', 75, 'OFFLINE', 'Training Room', NULL, NULL, 'SCHEDULED'),
+(12, 3, '2027-09-08', '10:00:00', 60, 'OFFLINE', 'PT Room 1', NULL, NULL, 'SCHEDULED'),
+(3, 1, '2027-11-20', '09:00:00', 60, 'OFFLINE', 'Studio B', NULL, NULL, 'SCHEDULED'),
+(1, 1, '2028-02-14', '08:00:00', 60, 'OFFLINE', 'Studio A', NULL, NULL, 'SCHEDULED'),
+(5, 6, '2028-05-20', '18:00:00', 60, 'OFFLINE', 'CrossFit Zone', NULL, NULL, 'SCHEDULED'),
+(6, 5, '2028-08-10', '08:30:00', 60, 'OFFLINE', 'Dance Studio', NULL, NULL, 'SCHEDULED'),
+(12, 3, '2028-10-05', '10:00:00', 60, 'OFFLINE', 'PT Room 1', NULL, NULL, 'SCHEDULED'),
+(9, 11, '2026-03-22', '11:00:00', 45, 'OFFLINE', 'Studio B', NULL, NULL, 'COMPLETED'),
+(7, 12, '2026-04-08', '17:30:00', 45, 'OFFLINE', 'Cycling Room', NULL, NULL, 'COMPLETED'),
+(1, 14, '2026-09-28', '08:00:00', 60, 'OFFLINE', 'Studio A', NULL, NULL, 'SCHEDULED'),
+(2, 15, '2026-10-04', '10:00:00', 60, 'OFFLINE', 'Fitness Hall', NULL, NULL, 'SCHEDULED'),
+(6, 16, '2027-01-18', '08:30:00', 60, 'OFFLINE', 'Dance Studio', NULL, NULL, 'SCHEDULED'),
+(4, 19, '2027-04-12', '18:00:00', 75, 'OFFLINE', 'Training Room', NULL, NULL, 'SCHEDULED'),
+(8, 20, '2028-03-06', '09:00:00', 60, 'OFFLINE', 'Strength Room', NULL, NULL, 'SCHEDULED'),
+(10, 22, '2028-06-14', '17:00:00', 45, 'ONLINE', NULL, NULL, NULL, 'SCHEDULED'),
 
--- =====================================================
--- HISTORICAL SESSIONS - AUGUST 2026
--- =====================================================
+-- Extra sessions used for change-impact + high cancellation rates
+(1, 1, '2026-10-30', '08:00:00', 60, 'OFFLINE', 'Studio A', NULL, NULL, 'SCHEDULED'),
+(4, 4, '2026-11-28', '18:00:00', 75, 'OFFLINE', 'Training Room',
+ '2026-09-20 10:00:00', 'Cancelled after the time change — too few members kept the slot.', 'CANCELLED'),
+(3, 1, '2026-10-25', '09:00:00', 60, 'OFFLINE', 'Studio C',
+ '2026-09-18 15:00:00', 'Cancelled after the room change — studio closed.', 'CANCELLED'),
+(2, 2, '2026-11-16', '10:00:00', 60, 'OFFLINE', 'Studio B', NULL, NULL, 'SCHEDULED'),
+(10, 7, '2026-12-20', '17:00:00', 45, 'ONLINE', NULL, NULL, NULL, 'SCHEDULED'),
+(8, 6, '2027-02-10', '09:00:00', 60, 'OFFLINE', 'Strength Room',
+ '2026-09-21 11:00:00', 'Cancelled after equipment delay.', 'CANCELLED'),
+(9, 11, '2026-10-16', '11:00:00', 45, 'OFFLINE', 'Studio B', NULL, NULL, 'SCHEDULED'),
+(7, 12, '2026-11-30', '17:30:00', 45, 'OFFLINE', 'Cycling Room',
+ '2026-09-22 09:00:00', 'Cancelled after trainer change — cover trainer unavailable.', 'CANCELLED'),
+(1, 14, '2027-01-15', '08:00:00', 60, 'OFFLINE', 'Studio A',
+ '2026-09-23 08:30:00', 'Cancelled after the 07:00→08:00 time change.', 'CANCELLED'),
+(5, 6, '2026-12-08', '18:00:00', 60, 'OFFLINE', 'CrossFit Zone', NULL, NULL, 'SCHEDULED'),
+(6, 5, '2026-11-06', '09:30:00', 60, 'OFFLINE', 'Dance Studio', NULL, NULL, 'SCHEDULED');
 
-(1, 1, '2026-08-05', '08:00:00', 60,
- 'OFFLINE', 'Studio A', 'COMPLETED'),
 
-(2, 2, '2026-08-08', '10:00:00', 60,
- 'OFFLINE', 'Fitness Hall', 'COMPLETED'),
-
-(12, 13, '2026-08-12', '14:00:00', 60,
- 'OFFLINE', 'PT Room 1', 'COMPLETED'),
-
-(3, 3, '2026-08-15', '09:00:00', 60,
- 'ONLINE', NULL, 'COMPLETED'),
-
-(5, 5, '2026-08-18', '18:00:00', 60,
- 'OFFLINE', 'CrossFit Zone', 'CANCELLED'),
-
-(12, 14, '2026-08-22', '11:00:00', 60,
- 'OFFLINE', 'PT Room 2', 'CANCELLED'),
-
--- =====================================================
--- UPCOMING SESSIONS - OCTOBER 2026
--- =====================================================
-
-(1, 6, '2026-10-02', '08:00:00', 60,
- 'OFFLINE', 'Studio A', 'SCHEDULED'),
-
-(2, 6, '2026-10-04', '10:00:00', 60,
- 'OFFLINE', 'Fitness Hall', 'SCHEDULED'),
-
-(3, 8, '2026-10-06', '09:00:00', 60,
- 'OFFLINE', 'Studio B', 'SCHEDULED'),
-
-(4, 10, '2026-10-08', '18:00:00', 75,
- 'OFFLINE', 'Training Room', 'SCHEDULED'),
-
-(5, 12, '2026-10-10', '18:00:00', 60,
- 'OFFLINE', 'CrossFit Zone', 'SCHEDULED'),
-
-(6, 14, '2026-10-12', '08:30:00', 60,
- 'OFFLINE', 'Dance Studio', 'SCHEDULED'),
-
-(7, 16, '2026-10-15', '17:30:00', 45,
- 'OFFLINE', 'Cycling Room', 'SCHEDULED'),
-
-(8, 18, '2026-10-18', '09:00:00', 60,
- 'OFFLINE', 'Strength Room', 'SCHEDULED'),
-
--- =====================================================
--- UPCOMING SESSIONS - NOVEMBER 2026
--- =====================================================
-
-(1, 20, '2026-11-02', '09:00:00', 60,
- 'OFFLINE', 'Studio A', 'SCHEDULED'),
-
-(2, 1, '2026-11-05', '17:00:00', 60,
- 'OFFLINE', 'Fitness Hall', 'SCHEDULED'),
-
-(5, 3, '2026-11-08', '18:00:00', 60,
- 'OFFLINE', 'CrossFit Zone', 'SCHEDULED'),
-
-(12, 5, '2026-11-12', '10:00:00', 60,
- 'OFFLINE', 'PT Room 1', 'SCHEDULED'),
-
-(13, 7, '2026-11-15', '13:00:00', 45,
- 'ONLINE', NULL, 'SCHEDULED'),
-
-(14, 9, '2026-11-20', '15:00:00', 60,
- 'OFFLINE', 'Assessment Room', 'SCHEDULED');
- 
- INSERT INTO Bookings (
-    member_id,
-    session_id,
-    booking_created_time,
-    booking_cancelled_time,
-    booking_status
+-- =====================================================================
+-- BOOKINGS (58)
+-- booking_id = insert order
+-- Classic-only members are not booked on PERSONAL sessions (12, 13, 14)
+-- =====================================================================
+INSERT INTO Bookings (
+    member_id, session_id, booking_created_time,
+    booking_cancelled_time, booking_cancelled_reason, booking_cancelled_by, booking_status
 )
 VALUES
+(1, 1, '2025-11-01 10:15:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(2, 2, '2025-12-04 14:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(1, 3, '2026-01-08 09:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(3, 4, '2026-02-04 11:30:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(6, 5, '2026-03-10 16:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(7, 6, '2026-04-15 08:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(1, 7, '2026-05-06 10:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(8, 8, '2026-06-08 12:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(16, 9, '2026-07-04 09:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(2, 10, '2026-08-02 08:45:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(3, 11, '2026-08-16 13:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(1, 12, '2026-08-28 09:10:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(9, 13, '2026-08-14 11:00:00', '2026-08-16 16:30:00', 'Cannot attend', 'MEMBER', 'CANCELLED'),
+(6, 14, '2026-08-19 09:00:00', '2026-08-20 13:15:00', 'Schedule clash', 'MEMBER', 'CANCELLED'),
+(1, 15, '2026-09-08 10:30:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(5, 15, '2026-09-08 11:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(2, 16, '2026-09-09 14:25:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(9, 16, '2026-09-09 15:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(3, 17, '2026-09-10 09:15:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(1, 18, '2026-09-10 16:40:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(6, 18, '2026-09-11 08:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(7, 19, '2026-09-11 18:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(8, 20, '2026-09-12 11:30:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(15, 21, '2026-09-12 15:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(16, 22, '2026-09-12 16:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(1, 23, '2026-09-12 17:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(2, 24, '2026-09-12 17:30:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(14, 24, '2026-09-12 18:00:00', '2026-09-12 19:00:00', 'Cannot attend with new trainer', 'MEMBER', 'CANCELLED'),
+(1, 25, '2026-09-13 09:10:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(5, 26, '2026-09-13 10:25:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(17, 27, '2026-09-13 12:40:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(7, 28, '2026-09-13 14:15:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(16, 29, '2026-09-13 08:30:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(8, 30, '2026-09-13 09:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(6, 31, '2026-09-08 10:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(7, 31, '2026-09-08 10:05:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(1, 32, '2026-09-13 11:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(3, 33, '2026-09-13 11:15:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(19, 33, '2026-09-13 11:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(1, 35, '2026-09-13 12:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(2, 36, '2026-09-13 12:10:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(17, 37, '2026-09-13 12:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(6, 38, '2026-09-13 12:30:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(8, 40, '2026-09-13 13:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(16, 41, '2026-09-13 13:10:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(2, 42, '2026-09-13 13:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(9, 20, '2026-09-10 09:00:00', '2026-09-11 09:00:00', 'Changed plans', 'MEMBER', 'CANCELLED'),
+(15, 15, '2026-09-08 12:00:00', '2026-09-09 08:00:00', 'Illness', 'MEMBER', 'CANCELLED'),
+(21, 15, '2026-09-09 09:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(22, 16, '2026-09-09 09:10:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(23, 17, '2026-09-10 09:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(24, 18, '2026-09-10 09:30:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(25, 19, '2026-09-11 09:40:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(26, 20, '2026-09-11 09:50:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(27, 21, '2026-09-12 10:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(28, 22, '2026-09-12 10:10:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(29, 25, '2026-09-13 10:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(30, 26, '2026-09-13 10:30:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
 
--- =====================================================
--- AUGUST 2026 - HISTORICAL BOOKINGS
--- =====================================================
+-- Session 49 Yoga trainer change: many members DECLINED → CANCELLED
+(1, 49, '2026-09-14 09:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(2, 49, '2026-09-14 09:05:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(3, 49, '2026-09-14 09:10:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(5, 49, '2026-09-14 09:15:00', '2026-09-15 10:00:00', 'Cannot attend with the new trainer.', 'MEMBER', 'CANCELLED'),
+(6, 49, '2026-09-14 09:20:00', '2026-09-15 10:05:00', 'Cannot attend with the new trainer.', 'MEMBER', 'CANCELLED'),
+(7, 49, '2026-09-14 09:25:00', '2026-09-15 10:10:00', 'Cannot attend with the new trainer.', 'MEMBER', 'CANCELLED'),
+(8, 49, '2026-09-14 09:30:00', '2026-09-15 10:15:00', 'Cannot attend with the new trainer.', 'MEMBER', 'CANCELLED'),
+(9, 49, '2026-09-14 09:35:00', '2026-09-15 10:20:00', 'Cannot attend with the new trainer.', 'MEMBER', 'CANCELLED'),
+(15, 49, '2026-09-14 09:40:00', '2026-09-15 10:25:00', 'Cannot attend with the new trainer.', 'MEMBER', 'CANCELLED'),
+(16, 49, '2026-09-14 09:45:00', '2026-09-15 10:30:00', 'Cannot attend with the new trainer.', 'MEMBER', 'CANCELLED'),
 
--- Member 1 attended August session
-(1, 1, '2026-08-01 10:15:00', NULL, 'BOOKED'),
+-- Session 50 HIIT cancelled after time change (bookings stay BOOKED)
+(1, 50, '2026-09-14 11:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(2, 50, '2026-09-14 11:05:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(3, 50, '2026-09-14 11:10:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(6, 50, '2026-09-14 11:15:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(7, 50, '2026-09-14 11:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(8, 50, '2026-09-14 11:25:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(16, 50, '2026-09-14 11:30:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(21, 50, '2026-09-14 11:35:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
 
--- Member 2 attended August session
-(2, 2, '2026-08-04 14:20:00', NULL, 'BOOKED'),
+-- Session 51 Pilates cancelled after room change
+(5, 51, '2026-09-14 12:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(9, 51, '2026-09-14 12:05:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(15, 51, '2026-09-14 12:10:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(17, 51, '2026-09-14 12:15:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(19, 51, '2026-09-14 12:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(22, 51, '2026-09-14 12:25:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(23, 51, '2026-09-14 12:30:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
 
--- Member 3 attended online session
-(3, 4, '2026-08-10 09:30:00', NULL, 'BOOKED'),
+-- Session 54 Strength cancelled
+(1, 54, '2026-09-14 13:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(6, 54, '2026-09-14 13:05:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(8, 54, '2026-09-14 13:10:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(16, 54, '2026-09-14 13:15:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(24, 54, '2026-09-14 13:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(26, 54, '2026-09-14 13:25:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
 
--- Member 4 cancelled before the session
-(4, 5, '2026-08-14 11:00:00',
-     '2026-08-16 16:30:00', 'CANCELLED'),
+-- Session 56 Spin cancelled after trainer change
+(1, 56, '2026-09-14 14:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(2, 56, '2026-09-14 14:05:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(3, 56, '2026-09-14 14:10:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(7, 56, '2026-09-14 14:15:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(21, 56, '2026-09-14 14:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(25, 56, '2026-09-14 14:25:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(27, 56, '2026-09-14 14:30:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(29, 56, '2026-09-14 14:35:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
 
--- Member 5 attended session
-(5, 3, '2026-08-10 15:45:00', NULL, 'BOOKED'),
+-- Session 57 Yoga cancelled after time change
+(1, 57, '2026-09-14 15:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(2, 57, '2026-09-14 15:05:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(3, 57, '2026-09-14 15:10:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(5, 57, '2026-09-14 15:15:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(6, 57, '2026-09-14 15:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(7, 57, '2026-09-14 15:25:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(8, 57, '2026-09-14 15:30:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(15, 57, '2026-09-14 15:35:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(21, 57, '2026-09-14 15:40:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(22, 57, '2026-09-14 15:45:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
 
--- Member 6 cancelled session
-(6, 6, '2026-08-19 09:00:00',
-     '2026-08-20 13:15:00', 'CANCELLED'),
+-- Session 52 Power Yoga room change: most declined
+(21, 52, '2026-09-14 16:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(22, 52, '2026-09-14 16:05:00', '2026-09-16 09:00:00', 'New room is too far.', 'MEMBER', 'CANCELLED'),
+(23, 52, '2026-09-14 16:10:00', '2026-09-16 09:05:00', 'New room is too far.', 'MEMBER', 'CANCELLED'),
+(24, 52, '2026-09-14 16:15:00', '2026-09-16 09:10:00', 'New room is too far.', 'MEMBER', 'CANCELLED'),
+(25, 52, '2026-09-14 16:20:00', '2026-09-16 09:15:00', 'New room is too far.', 'MEMBER', 'CANCELLED'),
+(26, 52, '2026-09-14 16:25:00', '2026-09-16 09:20:00', 'New room is too far.', 'MEMBER', 'CANCELLED'),
+(27, 52, '2026-09-14 16:30:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(30, 52, '2026-09-14 16:35:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
 
--- =====================================================
--- OCTOBER 2026 - UPCOMING BOOKINGS
--- =====================================================
+-- Session 53 Meditation mode change: most declined
+(1, 53, '2026-09-14 17:00:00', '2026-09-16 11:00:00', 'Do not want an online class.', 'MEMBER', 'CANCELLED'),
+(3, 53, '2026-09-14 17:05:00', '2026-09-16 11:05:00', 'Do not want an online class.', 'MEMBER', 'CANCELLED'),
+(6, 53, '2026-09-14 17:10:00', '2026-09-16 11:10:00', 'Do not want an online class.', 'MEMBER', 'CANCELLED'),
+(8, 53, '2026-09-14 17:15:00', '2026-09-16 11:15:00', 'Do not want an online class.', 'MEMBER', 'CANCELLED'),
+(17, 53, '2026-09-14 17:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(28, 53, '2026-09-14 17:25:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
 
--- Member 1 books multiple sessions
-(1, 7, '2026-09-01 10:30:00', NULL, 'BOOKED'),
+-- Session 55 Mobility time change
+(3, 55, '2026-09-14 18:00:00', '2026-09-16 12:00:00', 'New time does not work.', 'MEMBER', 'CANCELLED'),
+(5, 55, '2026-09-14 18:05:00', '2026-09-16 12:05:00', 'New time does not work.', 'MEMBER', 'CANCELLED'),
+(9, 55, '2026-09-14 18:10:00', '2026-09-16 12:10:00', 'New time does not work.', 'MEMBER', 'CANCELLED'),
+(19, 55, '2026-09-14 18:15:00', '2026-09-16 12:15:00', 'New time does not work.', 'MEMBER', 'CANCELLED'),
+(22, 55, '2026-09-14 18:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(25, 55, '2026-09-14 18:25:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
 
-(1, 9, '2026-09-02 12:10:00', NULL, 'BOOKED'),
+-- Session 58 CrossFit trainer change: most declined
+(2, 58, '2026-09-14 19:00:00', '2026-09-16 13:00:00', 'Cannot train with the new coach.', 'MEMBER', 'CANCELLED'),
+(6, 58, '2026-09-14 19:05:00', '2026-09-16 13:05:00', 'Cannot train with the new coach.', 'MEMBER', 'CANCELLED'),
+(7, 58, '2026-09-14 19:10:00', '2026-09-16 13:10:00', 'Cannot train with the new coach.', 'MEMBER', 'CANCELLED'),
+(8, 58, '2026-09-14 19:15:00', '2026-09-16 13:15:00', 'Cannot train with the new coach.', 'MEMBER', 'CANCELLED'),
+(16, 58, '2026-09-14 19:20:00', '2026-09-16 13:20:00', 'Cannot train with the new coach.', 'MEMBER', 'CANCELLED'),
+(21, 58, '2026-09-14 19:25:00', '2026-09-16 13:25:00', 'Cannot train with the new coach.', 'MEMBER', 'CANCELLED'),
+(24, 58, '2026-09-14 19:30:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(26, 58, '2026-09-14 19:35:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
 
--- Member 2
-(2, 8, '2026-09-01 14:25:00', NULL, 'BOOKED'),
-
--- Member 3
-(3, 10, '2026-09-02 09:15:00', NULL, 'BOOKED'),
-
--- Member 4
-(4, 11, '2026-09-03 16:40:00', NULL, 'BOOKED'),
-
--- Member 5
-(5, 12, '2026-09-03 18:20:00', NULL, 'BOOKED'),
-
--- Member 6
-(6, 13, '2026-09-04 11:30:00', NULL, 'BOOKED'),
-
--- Member 7
-(7, 14, '2026-09-04 15:00:00', NULL, 'BOOKED'),
-
--- Member 8 declined the trainer change on session 7
-(8, 7, '2026-09-01 08:45:00',
-     '2026-09-20 11:00:00', 'CANCELLED'),
-
--- Member 9
-(9, 10, '2026-09-02 13:20:00', NULL, 'BOOKED'),
-
--- =====================================================
--- CANCELLED UPCOMING BOOKINGS
--- =====================================================
-
--- Member 10 booked and later cancelled
-(10, 14, '2026-09-01 10:00:00',
-      '2026-09-04 17:30:00', 'CANCELLED'),
-
--- Member 3 cancelled an upcoming booking
-(3, 15, '2026-09-02 11:15:00',
-      '2026-09-04 09:20:00', 'CANCELLED'),
-
--- =====================================================
--- NOVEMBER 2026 - UPCOMING BOOKINGS
--- =====================================================
-
-(1, 16, '2026-09-03 09:10:00', NULL, 'BOOKED'),
-
-(2, 17, '2026-09-03 10:25:00', NULL, 'BOOKED'),
-
-(5, 18, '2026-09-04 12:40:00', NULL, 'BOOKED'),
-
-(7, 19, '2026-09-04 14:15:00', NULL, 'BOOKED'),
-
-(9, 20, '2026-09-05 08:30:00', NULL, 'BOOKED');
+-- Session 59 Zumba time change: most declined
+(1, 59, '2026-09-14 20:00:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(5, 59, '2026-09-14 20:05:00', '2026-09-16 14:00:00', '09:30 is too late.', 'MEMBER', 'CANCELLED'),
+(9, 59, '2026-09-14 20:10:00', '2026-09-16 14:05:00', '09:30 is too late.', 'MEMBER', 'CANCELLED'),
+(15, 59, '2026-09-14 20:15:00', '2026-09-16 14:10:00', '09:30 is too late.', 'MEMBER', 'CANCELLED'),
+(17, 59, '2026-09-14 20:20:00', NULL, NULL, 'SYSTEM', 'BOOKED'),
+(19, 59, '2026-09-14 20:25:00', '2026-09-16 14:15:00', '09:30 is too late.', 'MEMBER', 'CANCELLED'),
+(22, 59, '2026-09-14 20:30:00', '2026-09-16 14:20:00', '09:30 is too late.', 'MEMBER', 'CANCELLED'),
+(25, 59, '2026-09-14 20:35:00', '2026-09-16 14:25:00', '09:30 is too late.', 'MEMBER', 'CANCELLED'),
+(29, 59, '2026-09-14 20:40:00', '2026-09-16 14:30:00', '09:30 is too late.', 'MEMBER', 'CANCELLED'),
+(30, 59, '2026-09-14 20:45:00', NULL, NULL, 'SYSTEM', 'BOOKED');
 
 
--- =====================================================
--- SESSION CHANGE IMPACT MANAGEMENT
--- Sessions already store the NEW current details.
--- History stores that a change happened; responses store
--- each booked member's accept / decline / no reply.
--- =====================================================
+-- =====================================================================
+-- SESSION UPDATIONS (30)
+-- =====================================================================
+INSERT INTO Session_updations (
+    session_id, trainer_id, session_date, start_time,
+    session_room, session_mode, updation_type, updation_reason, session_updated_at
+)
+VALUES
+(24, 1, '2026-10-22', '2026-10-22 08:00:00', 'Studio A', 'OFFLINE', 'TRAINER_CHANGED', 'Original trainer Charlotte Bennett was unavailable. Session reassigned to Oliver Hart.', '2026-09-12 09:00:00'),
+(18, 4, '2026-10-08', '2026-10-08 18:00:00', 'Training Room', 'OFFLINE', 'TIME_CHANGED', 'Session moved from 17:00 to 18:00 because of a room timetable clash.', '2026-09-11 14:30:00'),
+(16, 2, '2026-09-25', '2026-09-25 10:00:00', 'Studio B', 'OFFLINE', 'ROOM_CHANGED', 'Fitness Hall reserved for an event. Class moved to Studio B.', '2026-09-10 16:00:00'),
+(33, 7, '2026-12-12', '2026-12-12 17:00:00', 'ONLINE', 'ONLINE', 'MODE_CHANGED', 'In-person meditation moved online due to studio renovation.', '2026-09-13 10:00:00'),
+(15, 1, '2026-09-20', '2026-09-20 08:00:00', 'Studio A', 'OFFLINE', 'OTHER', 'Class plan updated to a beginner-friendly sequence.', '2026-09-08 12:00:00'),
+(17, 1, '2026-10-02', '2026-10-02 09:00:00', 'Studio B', 'OFFLINE', 'ROOM_CHANGED', 'Studio A double-booked. Pilates moved to Studio B.', '2026-09-10 11:00:00'),
+(19, 6, '2026-10-10', '2026-10-10 18:00:00', 'CrossFit Zone', 'OFFLINE', 'TRAINER_CHANGED', 'Session covered by Grace Mitchell.', '2026-09-11 09:30:00'),
+(20, 5, '2026-10-12', '2026-10-12 08:30:00', 'Dance Studio', 'OFFLINE', 'TIME_CHANGED', 'Start moved to 08:30 to avoid the morning rush.', '2026-09-12 08:00:00'),
+(21, 7, '2026-10-15', '2026-10-15 17:30:00', 'Cycling Room', 'OFFLINE', 'OTHER', 'Ride playlist and resistance blocks updated.', '2026-09-12 15:10:00'),
+(22, 6, '2026-10-18', '2026-10-18 09:00:00', 'Strength Room', 'OFFLINE', 'ROOM_CHANGED', 'Moved into the Strength Room after equipment service.', '2026-09-12 16:20:00'),
+(23, 3, '2026-10-20', '2026-10-20 10:00:00', 'PT Room 1', 'OFFLINE', 'TIME_CHANGED', 'Personal training slot moved to 10:00.', '2026-09-12 17:05:00'),
+(25, 1, '2026-11-04', '2026-11-04 09:00:00', 'Studio A', 'OFFLINE', 'TRAINER_CHANGED', 'Oliver Hart takes this November yoga class.', '2026-09-13 09:20:00'),
+(26, 2, '2026-11-08', '2026-11-08 17:00:00', 'Fitness Hall', 'OFFLINE', 'TIME_CHANGED', 'Evening slot set to 17:00 for commuters.', '2026-09-13 10:40:00'),
+(27, 4, '2026-11-12', '2026-11-12 18:00:00', 'Training Room', 'OFFLINE', 'OTHER', 'HIIT work-to-rest ratio updated.', '2026-09-13 12:50:00'),
+(28, 3, '2026-11-15', '2026-11-15 10:00:00', 'PT Room 1', 'OFFLINE', 'ROOM_CHANGED', 'Moved to PT Room 1.', '2026-09-13 14:20:00'),
+(29, 8, '2026-11-18', '2026-11-18 13:00:00', 'ONLINE', 'ONLINE', 'MODE_CHANGED', 'Nutrition consult delivered online.', '2026-09-13 08:40:00'),
+(30, 9, '2026-11-22', '2026-11-22 15:00:00', 'Assessment Room', 'OFFLINE', 'OTHER', 'Assessment protocol expanded.', '2026-09-13 09:05:00'),
+(31, 5, '2026-10-28', '2026-10-28 08:30:00', 'Dance Studio', 'OFFLINE', 'OTHER', 'Logged before the studio-maintenance cancellation.', '2026-09-09 18:00:00'),
+(32, 1, '2026-12-05', '2026-12-05 08:00:00', 'Studio A', 'OFFLINE', 'ROOM_CHANGED', 'December yoga kept in Studio A after a room review.', '2026-09-13 11:10:00'),
+(35, 1, '2027-03-10', '2027-03-10 08:00:00', 'Studio A', 'OFFLINE', 'TRAINER_CHANGED', '2027 yoga block assigned to Oliver Hart.', '2026-09-13 12:05:00'),
+(36, 4, '2027-06-15', '2027-06-15 18:00:00', 'Training Room', 'OFFLINE', 'TIME_CHANGED', 'June HIIT locked at 18:00.', '2026-09-13 12:15:00'),
+(37, 3, '2027-09-08', '2027-09-08 10:00:00', 'PT Room 1', 'OFFLINE', 'OTHER', 'PT goals sheet added for this booking.', '2026-09-13 12:25:00'),
+(38, 1, '2027-11-20', '2027-11-20 09:00:00', 'Studio B', 'OFFLINE', 'ROOM_CHANGED', 'November 2027 pilates stays in Studio B.', '2026-09-13 12:35:00'),
+(40, 6, '2028-05-20', '2028-05-20 18:00:00', 'CrossFit Zone', 'OFFLINE', 'TRAINER_CHANGED', '2028 CrossFit covered by Grace Mitchell.', '2026-09-13 13:05:00'),
+(41, 5, '2028-08-10', '2028-08-10 08:30:00', 'Dance Studio', 'OFFLINE', 'TIME_CHANGED', '2028 Zumba kept at 08:30.', '2026-09-13 13:15:00'),
+(42, 3, '2028-10-05', '2028-10-05 10:00:00', 'PT Room 1', 'OFFLINE', 'OTHER', 'Long-range PT slot confirmed.', '2026-09-13 13:25:00'),
+(1, 1, '2025-11-05', '2025-11-05 08:00:00', 'Studio A', 'OFFLINE', 'ROOM_CHANGED', 'Historical room confirmation for the Nov 2025 yoga class.', '2025-11-02 09:00:00'),
+(7, 1, '2026-05-10', '2026-05-10 08:00:00', 'Studio A', 'OFFLINE', 'OTHER', 'May 2026 yoga theme set to back-care.', '2026-05-03 10:00:00'),
+(12, 1, '2026-09-02', '2026-09-02 08:00:00', 'Studio A', 'OFFLINE', 'TIME_CHANGED', 'Kept at 08:00 after a timetable review.', '2026-08-30 11:00:00'),
+(5, 4, '2026-03-15', '2026-03-15 18:00:00', 'Training Room', 'OFFLINE', 'TRAINER_CHANGED', 'Amelia Brooks took this March HIIT class.', '2026-03-10 09:00:00'),
+(49, 14, '2026-10-30', '2026-10-30 08:00:00', 'Studio A', 'OFFLINE', 'TRAINER_CHANGED', 'Oliver Hart replaced by James Morris. Seven of ten members declined.', '2026-09-15 09:00:00'),
+(50, 4, '2026-11-28', '2026-11-28 18:00:00', 'Training Room', 'OFFLINE', 'TIME_CHANGED', 'Moved from 17:00 to 18:00, then the class was cancelled.', '2026-09-19 16:00:00'),
+(51, 1, '2026-10-25', '2026-10-25 09:00:00', 'Studio C', 'OFFLINE', 'ROOM_CHANGED', 'Moved to Studio C, then cancelled when that room closed.', '2026-09-17 14:00:00'),
+(52, 2, '2026-11-16', '2026-11-16 10:00:00', 'Studio B', 'OFFLINE', 'ROOM_CHANGED', 'Power Yoga moved from Fitness Hall to Studio B. Five members declined.', '2026-09-16 08:30:00'),
+(53, 7, '2026-12-20', '2026-12-20 17:00:00', 'ONLINE', 'ONLINE', 'MODE_CHANGED', 'Meditation moved online. Four members declined.', '2026-09-16 10:30:00'),
+(54, 6, '2027-02-10', '2027-02-10 09:00:00', 'Strength Room', 'OFFLINE', 'OTHER', 'Logged before the strength class was cancelled.', '2026-09-21 09:00:00'),
+(55, 11, '2026-10-16', '2026-10-16 11:00:00', 'Studio B', 'OFFLINE', 'TIME_CHANGED', 'Mobility moved from 10:00 to 11:00. Four members declined.', '2026-09-16 11:45:00'),
+(56, 12, '2026-11-30', '2026-11-30 17:30:00', 'Cycling Room', 'OFFLINE', 'TRAINER_CHANGED', 'Spin cover trainer could not take the class — session cancelled.', '2026-09-22 08:00:00'),
+(57, 14, '2027-01-15', '2027-01-15 08:00:00', 'Studio A', 'OFFLINE', 'TIME_CHANGED', 'Yoga moved from 07:00 to 08:00, then cancelled.', '2026-09-23 08:00:00'),
+(58, 6, '2026-12-08', '2026-12-08 18:00:00', 'CrossFit Zone', 'OFFLINE', 'TRAINER_CHANGED', 'CrossFit reassigned to Grace Mitchell. Six members declined.', '2026-09-16 12:30:00'),
+(59, 5, '2026-11-06', '2026-11-06 09:30:00', 'Dance Studio', 'OFFLINE', 'TIME_CHANGED', 'Zumba moved from 08:30 to 09:30. Seven members declined.', '2026-09-16 13:00:00');
+
+
+-- =====================================================================
+-- SESSION UPDATION RESPONSES (30)
+-- PENDING => response_created_at NULL
+-- =====================================================================
+INSERT INTO Session_updation_Responses (
+    session_update_id, booking_id, response_status, response_reason, response_created_at
+)
+VALUES
+(1, 27, 'ACCEPTED', 'Happy to continue with the new trainer.', '2026-09-12 16:20:00'),
+(1, 28, 'DECLINED', 'Cannot attend with the new trainer.', '2026-09-12 19:00:00'),
+(2, 20, 'PENDING', NULL, NULL),
+(2, 21, 'ACCEPTED', '18:00 works better.', '2026-09-12 08:15:00'),
+(3, 17, 'ACCEPTED', 'Studio B is fine.', '2026-09-11 09:00:00'),
+(3, 18, 'PENDING', NULL, NULL),
+(4, 38, 'PENDING', NULL, NULL),
+(4, 39, 'ACCEPTED', 'Online class is easier to join.', '2026-09-13 12:00:00'),
+(5, 15, 'ACCEPTED', 'Beginner sequence is helpful.', '2026-09-08 18:00:00'),
+(5, 16, 'PENDING', NULL, NULL),
+(6, 19, 'ACCEPTED', 'Studio B is closer for me.', '2026-09-10 15:00:00'),
+(7, 22, 'ACCEPTED', 'New trainer is fine.', '2026-09-11 20:00:00'),
+(8, 23, 'PENDING', NULL, NULL),
+(9, 24, 'ACCEPTED', 'Still attending spin.', '2026-09-12 19:00:00'),
+(10, 25, 'ACCEPTED', 'Strength Room works.', '2026-09-12 20:00:00'),
+(11, 26, 'ACCEPTED', '10:00 is better.', '2026-09-12 21:00:00'),
+(12, 29, 'PENDING', NULL, NULL),
+(13, 30, 'ACCEPTED', '17:00 is convenient.', '2026-09-13 16:00:00'),
+(14, 31, 'ACCEPTED', 'Updated HIIT format is fine.', '2026-09-13 17:00:00'),
+(15, 32, 'PENDING', NULL, NULL),
+(16, 33, 'ACCEPTED', 'Online consult is easier.', '2026-09-13 18:00:00'),
+(17, 34, 'ACCEPTED', 'Happy with the extra tests.', '2026-09-13 18:30:00'),
+(18, 35, 'PENDING', NULL, NULL),
+(18, 36, 'ACCEPTED', 'Will wait for the reschedule notice.', '2026-09-10 12:00:00'),
+(19, 37, 'ACCEPTED', 'December yoga still works.', '2026-09-13 19:00:00'),
+(20, 40, 'PENDING', NULL, NULL),
+(21, 41, 'ACCEPTED', '18:00 in June is fine.', '2026-09-13 19:10:00'),
+(22, 42, 'ACCEPTED', 'PT slot confirmed.', '2026-09-13 19:20:00'),
+(23, 43, 'PENDING', NULL, NULL),
+(24, 44, 'ACCEPTED', 'See you in 2028 CrossFit.', '2026-09-13 19:30:00'),
+
+-- Session 49 trainer change
+(31, 59, 'ACCEPTED', 'Happy to continue.', '2026-09-15 11:00:00'),
+(31, 60, 'ACCEPTED', 'New trainer is fine.', '2026-09-15 11:05:00'),
+(31, 61, 'ACCEPTED', 'I will stay booked.', '2026-09-15 11:10:00'),
+(31, 62, 'DECLINED', 'Cannot attend with the new trainer.', '2026-09-15 10:00:00'),
+(31, 63, 'DECLINED', 'Cannot attend with the new trainer.', '2026-09-15 10:05:00'),
+(31, 64, 'DECLINED', 'Cannot attend with the new trainer.', '2026-09-15 10:10:00'),
+(31, 65, 'DECLINED', 'Cannot attend with the new trainer.', '2026-09-15 10:15:00'),
+(31, 66, 'DECLINED', 'Cannot attend with the new trainer.', '2026-09-15 10:20:00'),
+(31, 67, 'DECLINED', 'Cannot attend with the new trainer.', '2026-09-15 10:25:00'),
+(31, 68, 'DECLINED', 'Cannot attend with the new trainer.', '2026-09-15 10:30:00'),
+
+-- Session 50 / 51 / 56 / 57 cancelled after a change
+(32, 69, 'PENDING', NULL, NULL),
+(32, 70, 'PENDING', NULL, NULL),
+(33, 77, 'PENDING', NULL, NULL),
+(38, 90, 'PENDING', NULL, NULL),
+(39, 98, 'PENDING', NULL, NULL),
+
+-- Session 52 room change
+(34, 108, 'ACCEPTED', 'Studio B is OK.', '2026-09-16 10:00:00'),
+(34, 109, 'DECLINED', 'New room is too far.', '2026-09-16 09:00:00'),
+(34, 110, 'DECLINED', 'New room is too far.', '2026-09-16 09:05:00'),
+(34, 111, 'DECLINED', 'New room is too far.', '2026-09-16 09:10:00'),
+(34, 112, 'DECLINED', 'New room is too far.', '2026-09-16 09:15:00'),
+(34, 113, 'DECLINED', 'New room is too far.', '2026-09-16 09:20:00'),
+(34, 114, 'ACCEPTED', 'I can still come.', '2026-09-16 10:05:00'),
+(34, 115, 'ACCEPTED', 'I can still come.', '2026-09-16 10:10:00'),
+
+-- Session 53 mode change
+(35, 116, 'DECLINED', 'Do not want an online class.', '2026-09-16 11:00:00'),
+(35, 117, 'DECLINED', 'Do not want an online class.', '2026-09-16 11:05:00'),
+(35, 118, 'DECLINED', 'Do not want an online class.', '2026-09-16 11:10:00'),
+(35, 119, 'DECLINED', 'Do not want an online class.', '2026-09-16 11:15:00'),
+(35, 120, 'ACCEPTED', 'Online is easier.', '2026-09-16 11:20:00'),
+(35, 121, 'ACCEPTED', 'Online is easier.', '2026-09-16 11:25:00'),
+
+-- Session 55 time change
+(37, 122, 'DECLINED', 'New time does not work.', '2026-09-16 12:00:00'),
+(37, 123, 'DECLINED', 'New time does not work.', '2026-09-16 12:05:00'),
+(37, 124, 'DECLINED', 'New time does not work.', '2026-09-16 12:10:00'),
+(37, 125, 'DECLINED', 'New time does not work.', '2026-09-16 12:15:00'),
+(37, 126, 'ACCEPTED', '11:00 is fine.', '2026-09-16 12:20:00'),
+(37, 127, 'ACCEPTED', '11:00 is fine.', '2026-09-16 12:25:00'),
+
+-- Session 58 trainer change
+(40, 128, 'DECLINED', 'Cannot train with the new coach.', '2026-09-16 13:00:00'),
+(40, 129, 'DECLINED', 'Cannot train with the new coach.', '2026-09-16 13:05:00'),
+(40, 130, 'DECLINED', 'Cannot train with the new coach.', '2026-09-16 13:10:00'),
+(40, 131, 'DECLINED', 'Cannot train with the new coach.', '2026-09-16 13:15:00'),
+(40, 132, 'DECLINED', 'Cannot train with the new coach.', '2026-09-16 13:20:00'),
+(40, 133, 'DECLINED', 'Cannot train with the new coach.', '2026-09-16 13:25:00'),
+(40, 134, 'ACCEPTED', 'I will stay.', '2026-09-16 13:30:00'),
+(40, 135, 'ACCEPTED', 'I will stay.', '2026-09-16 13:35:00'),
+
+-- Session 59 Zumba time change
+(41, 136, 'ACCEPTED', '09:30 still works.', '2026-09-16 14:40:00'),
+(41, 137, 'DECLINED', '09:30 is too late.', '2026-09-16 14:00:00'),
+(41, 138, 'DECLINED', '09:30 is too late.', '2026-09-16 14:05:00'),
+(41, 139, 'DECLINED', '09:30 is too late.', '2026-09-16 14:10:00'),
+(41, 140, 'ACCEPTED', '09:30 still works.', '2026-09-16 14:45:00'),
+(41, 141, 'DECLINED', '09:30 is too late.', '2026-09-16 14:15:00'),
+(41, 142, 'DECLINED', '09:30 is too late.', '2026-09-16 14:20:00'),
+(41, 143, 'DECLINED', '09:30 is too late.', '2026-09-16 14:25:00'),
+(41, 144, 'DECLINED', '09:30 is too late.', '2026-09-16 14:30:00'),
+(41, 145, 'ACCEPTED', '09:30 still works.', '2026-09-16 14:50:00');
