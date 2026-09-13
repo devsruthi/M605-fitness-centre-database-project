@@ -1,3 +1,4 @@
+
 CREATE TABLE Members (
     member_id INT AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,

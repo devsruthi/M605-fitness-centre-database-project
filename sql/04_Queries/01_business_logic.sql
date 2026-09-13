@@ -376,6 +376,7 @@ ORDER BY total_cancelled_bookings DESC;
 -- *****************************************
 
 -- 1) booking history of a specific member
+-- (member_id = 1)
 -- ---------------------------------------------------------------------
 SELECT
 st.service_type_name, DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date,
@@ -396,7 +397,8 @@ WHERE m.member_id = 1 ORDER BY s.session_date DESC;
 
 SELECT
 b.booking_id,st.service_type_name,
-DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date, DATE_FORMAT(s.start_time, '%h:%i %p') AS start_time, session_mode,  b.booking_status
+DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date, 
+DATE_FORMAT(s.start_time, '%h:%i %p') AS start_time, session_mode,  b.booking_status
 FROM Members m
 JOIN Bookings b ON m.member_id = b.member_id
 JOIN Sessions s 

@@ -10,7 +10,7 @@ CREATE TRIGGER check_member_age_before_insertion
 BEFORE INSERT ON Members
 FOR EACH ROW
 BEGIN
-    IF TIMESTAMPDIFF(YEAR, NEW.date_of_birth, CURDATE()) < 15 THEN
+    IF TIMESTAMPDIFF(YEAR, NEW.date_of_birth, CURDATE()) < 16 THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Member must be at least 16 years old!';
     END IF;

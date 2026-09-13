@@ -5,7 +5,7 @@
 
 
 -- 1) check_member_age_before_insertion
---    (Member must be at least 16 (code rejects TIMESTAMPDIFF < 15))
+--    (Member must be at least 16)
 -- *****************************************************************
 
 -- 1a) FAIL — too young
@@ -37,15 +37,13 @@ WHERE m.email_id = 'trigger.adult@example.com';
 
 -- TEST DATA:
 -- memeber id's with no active subscription - (11, 12, 18)
+-- memeber id's with active subscription - (19, 20, 21)
 -- session id's - (34, 14, 3, 1)
 
-SELECT member_id, first_name, last_name
-FROM Members
-WHERE member_id IN (11, 12, 18);
-
-SELECT member_id, subscription_status, start_date
-FROM Member_Subscriptions
-WHERE member_id IN (11, 12, 18);
+SELECT m.member_id, m.first_name, m.last_name, ms.subscription_status
+FROM Members m
+JOIN Member_Subscriptions ms ON ms.member_id = m.member_id
+WHERE ms.subscription_status != 'ACTIVE';
 
 -- FAIL 
 INSERT INTO Bookings (member_id, session_id)
