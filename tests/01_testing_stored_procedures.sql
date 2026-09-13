@@ -95,7 +95,6 @@ CALL SessionChangeDeclinesByUpdationType();
 CALL SessionChangeDeclinesByService();
 CALL SessionChangeResponseDashboard();
 CALL MembersWhoDeclinedSessionChanges();
-CALL PendingSessionChangeResponses();
-CALL MostSessionChangeReasonsAnalysis();
--- 3. Most affected clients by session changes
+CALL MostAffectedSessionsAnalysis();
 CALL MostAffectedClientsAnalysis();
+CALL PendingSessionChangeResponses();

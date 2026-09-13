@@ -2,10 +2,10 @@
 
 -- ==================================STORED PROCEDURES =============================================
 
--- 1) Analysis & Reports
+-- 1) Analysis & Reports 
 -- 2) Member Flow
 -- 3) Admin Flow
--- 4) Session Impact Module
+-- 4) Session Impact Feature
 
 -- ***************** ANALYSIS & REPORTS ***************************
 
@@ -571,14 +571,14 @@ END //
 DELIMITER ;
 
 
--- 2) Declines by type of session change
+-- 2) Members session change declined rate by type of session change
 -- --------------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE SessionChangeDeclinesByUpdationType ()
 BEGIN
     SELECT
     su.updation_type,
-    COUNT(sur.response_id) AS total_responses,
+    COUNT(sur.response_id) AS total_members_affected,
     COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) AS declined_count,
     COUNT(CASE WHEN sur.response_status = 'ACCEPTED' THEN sur.response_id END) AS accepted_count,
     COUNT(CASE WHEN sur.response_status = 'PENDING' THEN sur.response_id END) AS pending_count,
@@ -593,19 +593,18 @@ BEGIN
     LEFT JOIN Session_updation_Responses sur ON sur.session_update_id = su.session_update_id
     LEFT JOIN Bookings b ON sur.booking_id = b.booking_id
     GROUP BY su.updation_type
-    ORDER BY declined DESC;
+    ORDER BY declined_count DESC;
 END //
 DELIMITER ;
 
--- 2) Clients who declined / cancelled after a session change
+-- 2) Members session change declined rate by service type
 -- --------------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE SessionChangeDeclinesByService ()
 BEGIN
     SELECT
-    su.updation_type,
     st.service_type_name,
-    COUNT(sur.response_id) AS total_responses,
+    COUNT(sur.response_id) AS total_members_affected,
     COUNT(CASE WHEN sur.response_status = 'ACCEPTED' THEN sur.response_id END) AS accepted_count,
     COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) AS declined_count,
     COUNT(CASE WHEN sur.response_status = 'DECLINED' AND b.booking_status = 'CANCELLED'
@@ -621,36 +620,12 @@ BEGIN
     JOIN Service_Types st ON s.service_type_id = st.service_type_id
     LEFT JOIN Session_updation_Responses sur ON sur.session_update_id = su.session_update_id
     LEFT JOIN Bookings b ON sur.booking_id = b.booking_id
-    GROUP BY su.updation_type, st.service_type_id, st.service_type_name
-    ORDER BY declined DESC;
-END //
-DELIMITER ;
-
-
-
--- 5) Declines / cancelled bookings by service type
--- --------------------------------------------------------------
-DELIMITER //
-CREATE PROCEDURE SessionChangeDeclinesByService ()
-BEGIN
-    SELECT
-    st.service_type_name,
-    COUNT(sur.response_id) AS total_responses,
-    COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) AS declined,
-    COUNT(DISTINCT CASE WHEN sur.response_status = 'DECLINED' THEN b.member_id END) AS clients_who_declined,
-    COUNT(CASE WHEN sur.response_status = 'DECLINED' AND b.booking_status = 'CANCELLED'
-    THEN b.booking_id END) AS bookings_cancelled_due_to_change
-    FROM Session_updations su
-    JOIN Sessions s ON su.session_id = s.session_id
-    JOIN Service_Types st ON s.service_type_id = st.service_type_id
-    LEFT JOIN Session_updation_Responses sur ON sur.session_update_id = su.session_update_id
-    LEFT JOIN Bookings b ON sur.booking_id = b.booking_id
     GROUP BY st.service_type_id, st.service_type_name
-    ORDER BY declined DESC;
+    ORDER BY decline_rate DESC;
 END //
 DELIMITER ;
 
--- 6) Each session change: accepted / declined / still waiting
+-- 6) session change response dashboard
 -- --------------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE SessionChangeResponseDashboard ()
@@ -682,8 +657,8 @@ CREATE PROCEDURE MembersWhoDeclinedSessionChanges ()
 BEGIN
     SELECT
     CONCAT(m.first_name, ' ', m.last_name) AS member_name,
-    st.service_type_name,
-    su.updation_type,b.booking_id,
+    st.service_type_name,b.booking_id,
+    su.updation_type,
     DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date,
     sur.response_reason AS decline_reason,
     DATE_FORMAT(b.booking_cancelled_time, '%b %d, %Y') AS cancelled_on,
@@ -699,7 +674,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- 8) Members still pending a response after a session change
+-- 8) Members still pending a response after session changes
 -- --------------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE PendingSessionChangeResponses ()
@@ -707,31 +682,32 @@ BEGIN
     SELECT
     CONCAT(m.first_name, ' ', m.last_name) AS member_name,
     m.email_id,
-    st.service_type_name,
+    st.service_type_name,b.booking_id,
     su.updation_type,
-    DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date,
-    DATE_FORMAT(su.session_updated_at, '%b %d, %Y') AS change_logged_on
+    DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date
     FROM Session_updation_Responses sur
-    JOIN Session_updations su ON sur.session_update_id = su.session_update_id
     JOIN Bookings b ON sur.booking_id = b.booking_id
     JOIN Members m ON b.member_id = m.member_id
-    JOIN Sessions s ON su.session_id = s.session_id
+    JOIN Sessions s ON b.session_id = s.session_id
     JOIN Service_Types st ON s.service_type_id = st.service_type_id
     WHERE sur.response_status = 'PENDING'
-    ORDER BY su.session_updated_at DESC;
+    ORDER BY b.booking_cancelled_time DESC;
 END //
 DELIMITER ;
 
--- 9) Which session-change reasons affected members the most
+-- 9) Sessions most affected by a change (highest decline rate first)
 -- --------------------------------------------------------------
 DELIMITER //
-CREATE PROCEDURE MostSessionChangeReasonsAnalysis ()
+CREATE PROCEDURE MostAffectedSessionsAnalysis ()
 BEGIN
     SELECT
-    su.updation_type,
-    su.updation_reason,
+    s.session_id,
+    DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date,
+    st.service_type_name,su.updation_type,su.updation_reason,
     COUNT(sur.response_id) AS notified_members,
+    COUNT(CASE WHEN sur.response_status = 'ACCEPTED' THEN sur.response_id END) AS accepted,
     COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) AS declined,
+    COUNT(CASE WHEN sur.response_status = 'PENDING' THEN sur.response_id END) AS pending,
     COUNT(CASE WHEN sur.response_status = 'DECLINED' AND b.booking_status = 'CANCELLED'
     THEN b.booking_id END) AS bookings_cancelled_due_to_change,
     ROUND(
@@ -740,10 +716,13 @@ BEGIN
         2
     ) AS decline_rate
     FROM Session_updations su
+    JOIN Sessions s ON su.session_id = s.session_id
+    JOIN Service_Types st ON s.service_type_id = st.service_type_id
     LEFT JOIN Session_updation_Responses sur ON sur.session_update_id = su.session_update_id
     LEFT JOIN Bookings b ON sur.booking_id = b.booking_id
-    GROUP BY su.updation_type, su.updation_reason
-    ORDER BY declined DESC, decline_rate DESC;
+    GROUP BY su.session_update_id, s.session_id, s.session_date,
+             st.service_type_name, su.updation_type, su.updation_reason
+    ORDER BY (decline_rate IS NULL), decline_rate DESC, declined DESC;
 END //
 DELIMITER ;
 
