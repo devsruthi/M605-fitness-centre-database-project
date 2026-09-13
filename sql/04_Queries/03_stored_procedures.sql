@@ -554,9 +554,13 @@ CREATE PROCEDURE SessionImpactAnalysis ()
 BEGIN
     SELECT
     st.service_type_name,
-    COUNT(CASE WHEN b.booking_status = 'BOOKED' THEN b.booking_id END) AS total_bookings,
-    COUNT(CASE WHEN s.session_status = 'CANCELLED' THEN s.session_id END) AS total_cancellations,
-    COUNT(CASE WHEN s.session_status = 'CANCELLED' THEN s.session_id END) * 100 / COUNT(CASE WHEN b.booking_status = 'BOOKED' THEN b.booking_id END) AS cancellation_rate
+    COUNT(b.booking_id) AS total_bookings,
+    COUNT(CASE WHEN b.booking_status = 'CANCELLED' THEN b.booking_id END) AS total_cancellations,
+    ROUND(
+        COUNT(CASE WHEN b.booking_status = 'CANCELLED' THEN b.booking_id END) * 100
+        / NULLIF(COUNT(b.booking_id), 0),
+        2
+    ) AS cancellation_rate
     FROM Sessions s
     LEFT JOIN Bookings b ON b.session_id = s.session_id
     LEFT JOIN Service_Types st ON s.service_type_id = st.service_type_id

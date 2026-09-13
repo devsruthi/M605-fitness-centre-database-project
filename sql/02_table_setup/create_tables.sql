@@ -150,3 +150,19 @@ CREATE TABLE Session_updation_Responses (
 );
 
 
+-- Maintaining Log (during trigger)
+CREATE TABLE Member_Details_Log (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    member_id INT NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email_id VARCHAR(150) NOT NULL,
+    phone_no VARCHAR(20),
+    date_of_birth DATE NOT NULL,
+    account_status ENUM('ACTIVE', 'INACTIVE') NOT NULL,
+    joining_date DATE NOT NULL,
+    logged_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (member_id) REFERENCES Members (member_id)
+);
+
+
