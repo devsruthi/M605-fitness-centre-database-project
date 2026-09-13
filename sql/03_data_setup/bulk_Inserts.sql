@@ -152,7 +152,29 @@ VALUES
 (31, '2026-07-18', 149.99, 'BANK_TRANSFER', 'SUCCESS'),
 (32, '2025-11-11', 399.99, 'PAYPAL', 'SUCCESS'),
 (33, '2026-08-28', 29.99, 'DEBIT_CARD', 'SUCCESS'),
-(34, '2026-08-22', 149.99, 'CREDIT_CARD', 'SUCCESS');
+(34, '2026-08-22', 149.99, 'CREDIT_CARD', 'SUCCESS'),
+
+-- Extra FAILED rows so several members appear in
+-- "failed payments more than 2 times" (each has 4+ failures)
+(2, '2026-07-07', 149.99, 'CREDIT_CARD', 'FAILED'),
+(2, '2026-07-08', 149.99, 'DEBIT_CARD', 'FAILED'),
+(6, '2026-04-28', 149.99, 'CREDIT_CARD', 'FAILED'),
+(6, '2026-04-29', 149.99, 'PAYPAL', 'FAILED'),
+(6, '2026-04-27', 149.99, 'BANK_TRANSFER', 'FAILED'),
+(9, '2026-06-12', 149.99, 'CREDIT_CARD', 'FAILED'),
+(9, '2026-06-13', 149.99, 'DEBIT_CARD', 'FAILED'),
+(9, '2026-06-11', 149.99, 'PAYPAL', 'FAILED'),
+(10, '2026-03-07', 399.99, 'CREDIT_CARD', 'FAILED'),
+(10, '2026-03-08', 399.99, 'DEBIT_CARD', 'FAILED'),
+(10, '2026-03-06', 399.99, 'PAYPAL', 'FAILED'),
+(14, '2026-08-22', 29.99, 'CREDIT_CARD', 'FAILED'),
+(14, '2026-08-23', 29.99, 'DEBIT_CARD', 'FAILED'),
+(14, '2026-08-21', 29.99, 'PAYPAL', 'FAILED'),
+(16, '2026-03-27', 149.99, 'BANK_TRANSFER', 'FAILED'),
+(25, '2026-02-11', 149.99, 'CREDIT_CARD', 'FAILED'),
+(25, '2026-02-12', 149.99, 'DEBIT_CARD', 'FAILED'),
+(25, '2026-02-13', 149.99, 'PAYPAL', 'FAILED'),
+(25, '2026-02-10', 149.99, 'BANK_TRANSFER', 'FAILED');
 
 
 -- =====================================================================

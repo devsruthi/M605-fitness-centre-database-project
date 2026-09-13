@@ -2,6 +2,11 @@
 
 -- ==================================STORED PROCEDURES =============================================
 
+-- 1) Analysis & Reports
+-- 2) Member Flow
+-- 3) Admin Flow
+-- 4) Session Impact Module
+
 -- ***************** ANALYSIS & REPORTS ***************************
 
 -- 1) Popularity rank of subscription plans in the entire history
@@ -426,7 +431,7 @@ CREATE PROCEDURE SessionUpdateResponse (
     IN p_session_update_id INT,
     IN p_booking_id INT,
     IN p_response_status ENUM('ACCEPTED', 'DECLINED'),
-    IN p_response_reason VARCHAR(250),
+    IN p_response_reason VARCHAR(250)
 )
 BEGIN
     IF EXISTS (
@@ -445,7 +450,7 @@ BEGIN
 
     IF p_response_status = 'DECLINED' THEN
         UPDATE Bookings SET booking_status = 'CANCELLED', booking_cancelled_time = NOW(), 
-        booking_cancelled_by = 'MEMBER'
+        booking_cancelled_by = 'MEMBER',
         booking_cancelled_reason = p_response_reason
         WHERE booking_id = p_booking_id;
     END IF;
@@ -538,6 +543,28 @@ BEGIN
            'Session updated successfully. Notification sent to booked members.' AS success_message;
 END //
 DELIMITER ;
+
+
+-- *********************************** SESSION IMPACT MODULE ************************************
+
+-- 1) Session Impact Analysis
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE SessionImpactAnalysis ()
+BEGIN
+    SELECT
+    st.service_type_name,
+    COUNT(CASE WHEN b.booking_status = 'BOOKED' THEN b.booking_id END) AS total_bookings,
+    COUNT(CASE WHEN s.session_status = 'CANCELLED' THEN s.session_id END) AS total_cancellations,
+    COUNT(CASE WHEN s.session_status = 'CANCELLED' THEN s.session_id END) * 100 / COUNT(CASE WHEN b.booking_status = 'BOOKED' THEN b.booking_id END) AS cancellation_rate
+    FROM Sessions s
+    LEFT JOIN Bookings b ON b.session_id = s.session_id
+    LEFT JOIN Service_Types st ON s.service_type_id = st.service_type_id
+    GROUP BY st.service_type_id, st.service_type_name
+    ORDER BY cancellation_rate DESC;
+END //
+DELIMITER ;
+
 
 
 

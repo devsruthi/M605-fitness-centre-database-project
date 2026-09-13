@@ -7,6 +7,7 @@
 -- 1) ANALYSIS & REPORTS  
 -- 2) MEMBER FLOW
 -- 3) ADMIN FLOW
+-- 4) Session Impact Module
 
 
 -- 1) ANALYSIS & REPORTS
@@ -23,7 +24,7 @@
  CALL FutureSessionsWithAvailablitity();
 
 
--- 1) MEMBER FLOW
+-- 2) MEMBER FLOW
 -- *********************************************
 -- 1) Member Registration
 -- 2) Member Login
@@ -72,7 +73,7 @@ CALL SessionUpdateResponse(1, 7, 'ACCEPTED', 'Happy to continue with the new tra
 
 -- =====================================================================================================================
 
- -- 2) ADMIN FLOW
+ -- 3) ADMIN FLOW
  -- ***********************************************
 
  -- 1. Cancel scheduled Session
@@ -84,3 +85,8 @@ CALL SessionUpdateResponse(1, 7, 'ACCEPTED', 'Happy to continue with the new tra
  CALL SessionUpdate(1,1, NULL, NULL, NULL,NULL, 'TRAINER_CHANGED','Current trainer is not available'); 
  -- (session_id, update_trainer, update_date, update_time, update_room, update_mode, update_type, update_reason)
 
+-- 4) SESSION IMPACT MODULE
+-- ***********************************************
+-- 1. Session Impact Analysis
+-- -----------------------
+CALL SessionImpactAnalysis();
