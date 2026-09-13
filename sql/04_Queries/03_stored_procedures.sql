@@ -320,54 +320,71 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE PurchaseSubscriptionPlan (
     IN p_subscription_id INT,
-    IN p_payment_method ENUM('CREDIT_CARD', 'DEBIT_CARD', 'PAYPAL', 'BANK_TRANSFER'))
+    IN p_payment_method ENUM('CREDIT_CARD', 'DEBIT_CARD', 'PAYPAL', 'BANK_TRANSFER')
+)
+BEGIN
+    DECLARE l_plan_price DECIMAL(15, 2);
+    DECLARE l_payment_id INT;
+    DECLARE l_payment_status_from_gateway VARCHAR(10);
 
- BEGIN
-     DECLARE l_payment_status VARCHAR(10);
-     DECLARE l_plan_price DECIMAL(15, 2);
-     DECLARE l_payment_id INT;
-     DECLARE l_payment_status_from_gateway VARCHAR(10);
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Purchase failed. Please try again.';
+    END;
 
-    IF EXISTS (SELECT 1 FROM Member_Subscriptions WHERE subscription_id = p_subscription_id AND subscription_status = 'ACTIVE')
-    THEN
-    SIGNAL SQLSTATE '45000'
-    SET MESSAGE_TEXT = 'Subscription is already active.';
+    IF EXISTS (
+        SELECT 1 FROM Member_Subscriptions
+        WHERE subscription_id = p_subscription_id
+          AND subscription_status = 'ACTIVE'
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Subscription is already active.';
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM Member_Subscriptions WHERE subscription_id = p_subscription_id AND subscription_status = 'PENDING')
-    THEN
-    SIGNAL SQLSTATE '45000' 
-    SET MESSAGE_TEXT = 'You have not chosen the subscription plan!';
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Member_Subscriptions
+        WHERE subscription_id = p_subscription_id
+          AND subscription_status = 'PENDING'
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'You have not chosen the subscription plan!';
     END IF;
 
-    -- -- getting plan price autmatcially, not taking from user
-  SELECT sp.plan_price INTO l_plan_price FROM Member_Subscriptions ms 
-  JOIN Subscription_Plans sp ON sp.plan_id = ms.plan_id
-  WHERE ms.subscription_id = p_subscription_id;
+    -- getting plan price automatically, not taking from user
+    SELECT sp.plan_price INTO l_plan_price
+    FROM Member_Subscriptions ms
+    JOIN Subscription_Plans sp ON sp.plan_id = ms.plan_id
+    WHERE ms.subscription_id = p_subscription_id;
 
-    START TRANSACTION; 
-    -- assuming that --> got payment status from payment gateway (BANK/CARD/PAYPAL etc).....
+    -- assuming payment status came from the payment gateway ........
     SET l_payment_status_from_gateway = 'SUCCESS';
+
+    START TRANSACTION;
 
     INSERT INTO Payments (subscription_id, payment_date, payment_amount, payment_method, payment_status)
     VALUES (p_subscription_id, CURDATE(), l_plan_price, p_payment_method, l_payment_status_from_gateway);
 
     SET l_payment_id = LAST_INSERT_ID();
 
-   IF payment_status_from_gateway = 'SUCCESS'
- 
-    THEN
-    UPDATE Member_Subscriptions
-    SET subscription_status = 'ACTIVE', start_date = CURDATE()
-    WHERE subscription_id = p_subscription_id;
-    COMMIT;
-    SELECT  l_payment_id AS payment_id, p_subscription_id,'Congrats,Purchase successful, your subscription is active now.' AS success_message;
-    
-  ELSE
-    COMMIT; --  ----(Need Failed payment records too)
-    SIGNAL SQLSTATE '45000'
-    SET MESSAGE_TEXT = 'Payment failed,Please try again!';
+    IF l_payment_status_from_gateway = 'SUCCESS' THEN
+        UPDATE Member_Subscriptions
+        SET subscription_status = 'ACTIVE', start_date = CURDATE()
+        WHERE subscription_id = p_subscription_id;
+
+        COMMIT;
+        SELECT l_payment_id AS payment_id,
+               p_subscription_id AS subscription_id,
+               'Congrats, Purchase successful, your subscription is active now.' AS success_message;
+    ELSE
+        -- ( keep failed payment records for payment history ) do not activate the plan
+        COMMIT;
+        SELECT l_payment_id AS payment_id,
+               p_subscription_id AS subscription_id,
+               'Payment failed. Please try again.' AS message;
     END IF;
- END //
+END //
 DELIMITER ;
 
 
@@ -427,7 +444,9 @@ BEGIN
     VALUES (p_session_update_id, p_booking_id, p_response_status, p_response_reason);
 
     IF p_response_status = 'DECLINED' THEN
-        UPDATE Bookings SET booking_status = 'CANCELLED', booking_cancelled_time = NOW()
+        UPDATE Bookings SET booking_status = 'CANCELLED', booking_cancelled_time = NOW(), 
+        booking_cancelled_by = 'MEMBER'
+        booking_cancelled_reason = p_response_reason
         WHERE booking_id = p_booking_id;
     END IF;
 
@@ -458,7 +477,8 @@ CREATE PROCEDURE CancelSession (IN p_session_id INT)
     WHERE session_id = p_session_id;
 
     -- cancelling all the bookings related to that session
-    UPDATE Bookings SET booking_status = 'CANCELLED' , booking_cancelled_time = CURDATE()
+    UPDATE Bookings SET booking_status = 'CANCELLED' , booking_cancelled_time = CURDATE(),
+    booking_cancelled_by = 'SYSTEM'
     WHERE session_id = p_session_id;
     COMMIT;
     SELECT 'Session & All Bookings related to it cancelled successfully' AS success_message;
