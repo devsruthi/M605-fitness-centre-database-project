@@ -291,7 +291,7 @@ CREATE PROCEDURE AddSubscription (
   BEGIN
      SET p_subscription_id = NULL;
 
-    IF NOT EXISTS (SELECT 1 FROM Members WHERE member_id = p_member_id AND account_status = 'ACTIVE')
+    IF NOT EXISTS (SELECT 1 FROM Members WHERE member_id = p_member_id  AND account_status = 'ACTIVE')
     THEN
     SIGNAL SQLSTATE '45000'
     SET MESSAGE_TEXT = 'Member not found or not active!';
@@ -302,10 +302,20 @@ CREATE PROCEDURE AddSubscription (
     SET MESSAGE_TEXT = 'Subscription plan not found or not active!';
     END IF;
     IF EXISTS (SELECT 1 FROM Member_Subscriptions WHERE member_id = p_member_id 
-    AND plan_id = p_plan_id AND subscription_status in ('PENDING', 'ACTIVE'))
+    AND plan_id = p_plan_id AND subscription_status = 'PENDING')
     THEN
     SIGNAL SQLSTATE '45000'
-    SET MESSAGE_TEXT = 'You have already chosen this subscription plan and it is pending/active!';
+    SET MESSAGE_TEXT = 'You have already chosen this subscription plan and it is pending!';
+    END IF;
+
+    if not exists (SELECT 1 FROM Member_Subscriptions WHERE member_id = p_member_id AND plan_id = p_plan_id AND start_date = (
+        SELECT MAX(ms2.start_date)
+        FROM Member_Subscriptions ms2
+        WHERE ms2.member_id = p_member_id
+    ) AND subscription_status = 'ACTIVE')
+    THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'You have already an active subscription for this plan!';
     END IF;
     INSERT INTO Member_Subscriptions (member_id, plan_id, start_date, subscription_status)
     VALUES (p_member_id, p_plan_id, null, 'PENDING');
@@ -342,10 +352,15 @@ BEGIN
     IF EXISTS (
         SELECT 1 FROM Member_Subscriptions
         WHERE subscription_id = p_subscription_id
+          AND start_date = (
+            SELECT MAX(ms2.start_date)
+            FROM Member_Subscriptions ms2
+            WHERE ms2.subscription_id = p_subscription_id
+          )
           AND subscription_status = 'ACTIVE'
     ) THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Subscription is already active.';
+        SET MESSAGE_TEXT = 'Subscription is already active for this plan.';
     END IF;
 
     IF NOT EXISTS (

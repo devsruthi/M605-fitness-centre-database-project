@@ -2,8 +2,9 @@
 -- Sample data
 -- =====================================================================
 
--- MEMBERS (30)
--- 11, 12 never subscribed | 4, 10, 18 no ACTIVE plan | 13, 20 INACTIVE
+-- MEMBERS (35)
+-- 11, 12 never subscribed | 4, 10, 18 no ACTIVE plan | 13, 20, 35 INACTIVE
+-- 31–34 ACTIVE account, PENDING subscription only (no payment)
 -- =====================================================================
 INSERT INTO Members (first_name, last_name, email_id, password, phone_no, date_of_birth, account_status, joining_date)
 VALUES
@@ -36,7 +37,13 @@ VALUES
 ('Yuki', 'Tanaka', 'yuki.tanaka@example.com', 'Yuki@123', '1778901234', '1999-09-09', 'ACTIVE', '2026-07-18'),
 ('Elena', 'Popov', 'elena.popov@example.com', 'Elena@123', '1789012345', '1993-03-25', 'ACTIVE', '2025-11-11'),
 ('Marcus', 'Lee', 'marcus.lee@example.com', 'Marcus@123', '1790123456', '1998-12-12', 'ACTIVE', '2026-04-28'),
-('Greta', 'Holm', 'greta.holm@example.com', 'Greta@123', '1801234567', '2001-07-07', 'ACTIVE', '2026-08-22');
+('Greta', 'Holm', 'greta.holm@example.com', 'Greta@123', '1801234567', '2001-07-07', 'ACTIVE', '2026-08-22'),
+('Leila', 'Hassan', 'leila.hassan@example.com', 'Leila@123', '1812345678', '1999-04-18', 'ACTIVE', '2026-09-10'),
+('Jonas', 'Meier', 'jonas.meier@example.com', 'JonasM@123', '1823456789', '1997-08-02', 'ACTIVE', '2026-09-11'),
+('Tara', 'Patel', 'tara.patel@example.com', 'Tara@123', '1834567890', '2000-06-14', 'ACTIVE', '2026-09-12'),
+('Owen', 'Blake', 'owen.blake@example.com', 'Owen@123', '1845678901', '1996-02-09', 'ACTIVE', '2026-09-12'),
+('Iris', 'Novak', 'iris.novak@example.com', 'Iris@123', '1856789012', '1994-12-01', 'INACTIVE', '2025-03-20')
+;
 
 
 -- SUBSCRIPTION PLANS
@@ -57,7 +64,8 @@ VALUES
  'ACTIVE', TRUE, TRUE, TRUE);
 
 
--- MEMBER SUBSCRIPTIONS (34)
+-- MEMBER SUBSCRIPTIONS (38)
+-- 31–34 PENDING (chose a plan, not paid) | 35 no subscription
 -- =====================================================================
 INSERT INTO Member_Subscriptions (member_id, plan_id, start_date, subscription_status)
 VALUES
@@ -94,7 +102,11 @@ VALUES
 (27, 2, '2026-07-18', 'ACTIVE'),
 (28, 3, '2025-11-11', 'ACTIVE'),
 (29, 1, '2026-08-28', 'ACTIVE'),
-(30, 2, '2026-08-22', 'ACTIVE');
+(30, 2, '2026-08-22', 'ACTIVE'),
+(31, 1, '2026-09-10', 'PENDING'),
+(32, 2, '2026-09-11', 'PENDING'),
+(33, 1, '2026-09-12', 'PENDING'),
+(34, 3, '2026-09-12', 'PENDING');
 
 -- PAYMENTS (48)
 -- =====================================================================

@@ -32,6 +32,7 @@ DELIMITER ;
 
 
 -- 3) Prevent session booking - only memebers with active subscription can book sessions
+-- (latest subscription must be active)
 -- ------------------------------------------------------------------------------
 
 DELIMITER //
@@ -42,9 +43,13 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1
         FROM Member_Subscriptions ms
-        WHERE ms.member_id = NEW.member_id 
+        WHERE ms.member_id = NEW.member_id
+        AND ms.start_date = (
+            SELECT MAX(ms2.start_date)
+            FROM Member_Subscriptions ms2
+            WHERE ms2.member_id = NEW.member_id
+        )
         AND ms.subscription_status = 'ACTIVE' 
-        AND ms.start_date <= CURDATE()
 ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Member must have an active subscription plan to book sessions!';
@@ -127,7 +132,12 @@ BEGIN
         FROM Member_Subscriptions ms
         JOIN Subscription_Plans sp 
         ON ms.plan_id = sp.plan_id
-        WHERE ms.member_id = NEW.member_id 
+        WHERE ms.member_id = NEW.member_id
+        AND ms.start_date = (
+            SELECT MAX(ms2.start_date)
+            FROM Member_Subscriptions ms2
+            WHERE ms2.member_id = NEW.member_id
+        )
         AND ms.subscription_status = 'ACTIVE' AND plan_status = 'ACTIVE'
         AND sp.personal_training_access = TRUE)
      THEN
