@@ -545,9 +545,7 @@ END //
 DELIMITER ;
 
 
--- *********************************** SESSION IMPACT MODULE ************************************
-
--- 1) Session Impact Analysis
+-- 3) cancelled bookings analysis
 -- --------------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE CanceledBookingsAnalysis ()
@@ -571,7 +569,16 @@ END //
 DELIMITER ;
 
 
--- 2) Members session change declined rate by type of session change
+-- *********************************** SESSION IMPACT MODULE ************************************
+-- Relevance: In a fitness club, last-minute session changes (trainer, time, room, mode)
+-- often make booked members drop out. Empty seats, unused trainer hours and unhappy
+-- members are a real operational cost. This module measures that impact so admin can
+-- see which change types and services lose the most bookings, which sessions are
+-- worst affected, and how many cancellations happened in a given month — and then
+-- avoid the changes that hurt attendance the most.
+
+
+-- 1) Members session change declined rate by type of session change
 -- --------------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE SessionChangeDeclinesByUpdationType ()
@@ -625,7 +632,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- 6) session change response dashboard
+-- 3) session change response dashboard
 -- --------------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE SessionChangeResponseDashboard ()
@@ -650,7 +657,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- 7) Members who declined a session change (booking cancelled)
+-- 4) Members who declined a session change (booking cancelled)
 -- --------------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE MembersWhoDeclinedSessionChanges ()
@@ -674,28 +681,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- 8) Members still pending a response after session changes
--- --------------------------------------------------------------
-DELIMITER //
-CREATE PROCEDURE PendingSessionChangeResponses ()
-BEGIN
-    SELECT
-    CONCAT(m.first_name, ' ', m.last_name) AS member_name,
-    m.email_id,
-    st.service_type_name,b.booking_id,
-    su.updation_type,
-    DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date
-    FROM Session_updation_Responses sur
-    JOIN Bookings b ON sur.booking_id = b.booking_id
-    JOIN Members m ON b.member_id = m.member_id
-    JOIN Sessions s ON b.session_id = s.session_id
-    JOIN Service_Types st ON s.service_type_id = st.service_type_id
-    WHERE sur.response_status = 'PENDING'
-    ORDER BY b.booking_cancelled_time DESC;
-END //
-DELIMITER ;
-
--- 9) Sessions most affected by a change (highest decline rate first)
+-- 5) Sessions most affected by a change (highest decline rate first)
 -- --------------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE MostAffectedSessionsAnalysis ()
@@ -726,7 +712,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- 10) Members most affected by session changes
+-- 6) Members most affected by session changes
 -- --------------------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE MostAffectedClientsAnalysis ()
@@ -745,3 +731,65 @@ BEGIN
     ORDER BY declined DESC, total_change_notices DESC;
 END //
 DELIMITER ;
+
+
+-- 7) How many bookings were cancelled due to a session change in a year or specific month
+--     (month then year)
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE BookingsCancelledDueToSessionChange (IN p_month INT, IN p_year INT)
+BEGIN
+    SELECT
+    COUNT(b.booking_id) AS bookings_cancelled_due_to_change
+    FROM Session_updation_Responses sur
+    JOIN Bookings b ON sur.booking_id = b.booking_id
+    WHERE sur.response_status = 'DECLINED'
+      AND b.booking_status = 'CANCELLED'
+      AND b.booking_cancelled_time IS NOT NULL
+      AND (p_year IS NULL OR YEAR(b.booking_cancelled_time) = p_year)
+      AND (p_month IS NULL OR MONTH(b.booking_cancelled_time) = p_month);
+
+    SELECT
+    s.session_id,
+    DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date,
+    st.service_type_name,
+    su.updation_type,
+    COUNT(b.booking_id) AS bookings_cancelled_due_to_change
+    FROM Session_updation_Responses sur
+    JOIN Session_updations su ON sur.session_update_id = su.session_update_id
+    JOIN Bookings b ON sur.booking_id = b.booking_id
+    JOIN Sessions s ON b.session_id = s.session_id
+    JOIN Service_Types st ON s.service_type_id = st.service_type_id
+    WHERE sur.response_status = 'DECLINED'
+      AND b.booking_status = 'CANCELLED'
+      AND b.booking_cancelled_time IS NOT NULL
+      AND (p_year IS NULL OR YEAR(b.booking_cancelled_time) = p_year)
+      AND (p_month IS NULL OR MONTH(b.booking_cancelled_time) = p_month)
+    GROUP BY s.session_id, s.session_date, st.service_type_name, su.updation_type
+    ORDER BY bookings_cancelled_due_to_change DESC;
+END //
+DELIMITER ;
+
+
+-- 8) Members still pending a response after session changes
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE PendingSessionChangeResponses ()
+BEGIN
+    SELECT
+    CONCAT(m.first_name, ' ', m.last_name) AS member_name,
+    m.email_id,
+    st.service_type_name,b.booking_id,
+    su.updation_type,
+    DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date
+    FROM Session_updation_Responses sur
+    JOIN Bookings b ON sur.booking_id = b.booking_id
+    JOIN Members m ON b.member_id = m.member_id
+    JOIN Sessions s ON b.session_id = s.session_id
+    JOIN Service_Types st ON s.service_type_id = st.service_type_id
+    WHERE sur.response_status = 'PENDING'
+    ORDER BY b.booking_cancelled_time DESC;
+END //
+DELIMITER ;
+
+

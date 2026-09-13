@@ -84,17 +84,22 @@ CALL SessionUpdateResponse(1, 7, 'ACCEPTED', 'Happy to continue with the new tra
  CALL SessionUpdate(1,1, NULL, NULL, NULL,NULL, 'TRAINER_CHANGED','Current trainer is not available'); 
  -- (session_id, update_trainer, update_date, update_time, update_room, update_mode, update_type, update_reason)
 
+ -- 3. Cancellesd Bookings Analysis
+  -- -----------------------
+  CALL CanceledBookingsAnalysis();
+
 
 
 -- 4) SESSION IMPACT MODULE
 -- ***********************************************
 
-CALL CanceledBookingsAnalysis();
+CALL MostAffectedSessionsAnalysis();
 -- 2. Declines by type of session change (TRAINER_CHANGED, TIME_CHANGED, ROOM_CHANGED, MODE_CHANGED, OTHER)
 CALL SessionChangeDeclinesByUpdationType();
 CALL SessionChangeDeclinesByService();
 CALL SessionChangeResponseDashboard();
 CALL MembersWhoDeclinedSessionChanges();
-CALL MostAffectedSessionsAnalysis();
 CALL MostAffectedClientsAnalysis();
+CALL BookingsCancelledDueToSessionChange(9, 2026); -- (month, year)
+CALL BookingsCancelledDueToSessionChange(NULL, 2026); -- (year)
 CALL PendingSessionChangeResponses();
