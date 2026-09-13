@@ -7,6 +7,7 @@
 -- 3) SERVICE TYPES MANAGEMENT
 -- 4) SESSIONS BOOKING & SCHEDULE MANAGEMENT
 -- 5) TRAINERS MANAGEMENT
+-- 6) SESSION CHANGE IMPACT (ADMIN)
 
 -- 1) MEMBERS & SUBSCRIPTION MANAGEMENT
 -- ***********************************
@@ -589,5 +590,46 @@ TIMESTAMPDIFF(MONTH, t.hired_date, CURDATE()) % 12, ' months') AS years_at_centr
 FROM Trainers t
 WHERE t.account_status = 'ACTIVE'
 AND t.hired_date < DATE_SUB(CURDATE(), INTERVAL 1 YEAR)ORDER BY t.hired_date DESC;
+
+
+-- 6) SESSION CHANGE IMPACT (ADMIN)
+-- *****************************************
+
+-- 1) How many clients declined / cancelled a booking after a session change
+-- ---------------------------------------------------------------------
+SELECT
+COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) AS declined_responses,
+COUNT(DISTINCT CASE WHEN sur.response_status = 'DECLINED' THEN b.member_id END) AS clients_who_declined,
+COUNT(CASE WHEN sur.response_status = 'DECLINED' AND b.booking_status = 'CANCELLED'
+THEN b.booking_id END) AS bookings_cancelled_due_to_change,
+COUNT(CASE WHEN sur.response_status = 'ACCEPTED' THEN sur.response_id END) AS accepted_responses,
+COUNT(CASE WHEN sur.response_status = 'PENDING' THEN sur.response_id END) AS pending_responses
+FROM Session_updation_Responses sur
+JOIN Bookings b ON sur.booking_id = b.booking_id;
+
+
+-- 2) Declines by type of session change (trainer / time / room / mode)
+-- ---------------------------------------------------------------------
+SELECT
+su.updation_type,
+COUNT(sur.response_id) AS total_responses,
+COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) AS declined,
+COUNT(CASE WHEN sur.response_status = 'ACCEPTED' THEN sur.response_id END) AS accepted,
+COUNT(CASE WHEN sur.response_status = 'PENDING' THEN sur.response_id END) AS pending,
+COUNT(CASE WHEN sur.response_status = 'DECLINED' AND b.booking_status = 'CANCELLED'
+THEN b.booking_id END) AS bookings_cancelled_due_to_change,
+ROUND(
+COUNT(CASE WHEN sur.response_status = 'DECLINED' THEN sur.response_id END) * 100
+/ NULLIF(COUNT(sur.response_id), 0), 2
+) AS decline_rate
+FROM Session_updations su
+LEFT JOIN Session_updation_Responses sur ON sur.session_update_id = su.session_update_id
+LEFT JOIN Bookings b ON sur.booking_id = b.booking_id
+GROUP BY su.updation_type
+ORDER BY declined DESC;
+
+
+
+
 
 

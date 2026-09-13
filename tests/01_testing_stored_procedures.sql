@@ -71,7 +71,6 @@ CALL SessionUpdateResponse(1, 7, 'ACCEPTED', 'Happy to continue with the new tra
 -- (session_update_id, booking_id, response_status, response_reason)
 
 
--- =====================================================================================================================
 
  -- 3) ADMIN FLOW
  -- ***********************************************
@@ -85,8 +84,18 @@ CALL SessionUpdateResponse(1, 7, 'ACCEPTED', 'Happy to continue with the new tra
  CALL SessionUpdate(1,1, NULL, NULL, NULL,NULL, 'TRAINER_CHANGED','Current trainer is not available'); 
  -- (session_id, update_trainer, update_date, update_time, update_room, update_mode, update_type, update_reason)
 
+
+
 -- 4) SESSION IMPACT MODULE
 -- ***********************************************
--- 1. Session Impact Analysis
--- -----------------------
-CALL SessionImpactAnalysis();
+
+CALL CanceledBookingsAnalysis();
+-- 2. Declines by type of session change (TRAINER_CHANGED, TIME_CHANGED, ROOM_CHANGED, MODE_CHANGED, OTHER)
+CALL SessionChangeDeclinesByUpdationType();
+CALL SessionChangeDeclinesByService();
+CALL SessionChangeResponseDashboard();
+CALL MembersWhoDeclinedSessionChanges();
+CALL PendingSessionChangeResponses();
+CALL MostSessionChangeReasonsAnalysis();
+-- 3. Most affected clients by session changes
+CALL MostAffectedClientsAnalysis();
