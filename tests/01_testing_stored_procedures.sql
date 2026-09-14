@@ -42,11 +42,11 @@
 SET @member_id = NULL;
 SET @subscription_id = NULL;
 
-CALL MemberRegistration('Member', 'test', 
-'member@example.com', 'password123', '1234567890', '1990-01-01', @member_id);
+CALL MemberRegistration('Test', 'Member', 
+'test@example.com', 'password@123', '1234567890', '1990-01-01', @member_id);
 
 -- 2. Member Login
-CALL MemberLogin('member@example.com', 'password123');
+CALL MemberLogin('test@example.com', 'password@123');
 
 -- 3. View Member Details
 CALL ViewMemberDetails(@member_id);
@@ -65,8 +65,7 @@ CALL PurchaseSubscriptionPlan(@subscription_id, 'CREDIT_CARD'); -- (subscription
 SELECT * FROM Sessions;
 
 -- 6. Book a Session
-CALL BookSession(@member_id, 1); -- (member_id, session_id)
-CALL BookSession(21, 7);
+CALL BookSession(@member_id, 17); -- (member_id, session_id)
 
 
 -- 7. Member responds to session updates

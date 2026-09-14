@@ -438,7 +438,7 @@ CREATE PROCEDURE BookSession (IN p_member_id INT,IN p_session_id INT)
     INSERT INTO Bookings (member_id, session_id)
     VALUES (p_member_id, p_session_id);
     SET l_booking_id = LAST_INSERT_ID();
-    SELECT l_booking_id AS booking_id, member_id, p_session_id AS session_id, 'Congrats, you have successfully booked the session' AS success_message;
+    SELECT l_booking_id AS booking_id, p_member_id, p_session_id AS session_id, 'Congrats, you have successfully booked the session' AS success_message;
  END //
 DELIMITER ;
 
