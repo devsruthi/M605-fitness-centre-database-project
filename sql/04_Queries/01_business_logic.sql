@@ -22,13 +22,9 @@ JOIN Member_Subscriptions ms
 ON m.member_id = ms.member_id
 JOIN Subscription_Plans sp
 ON ms.plan_id = sp.plan_id
-WHERE ms.start_date = (
-    SELECT MAX(ms2.start_date)
-    FROM Member_Subscriptions ms2
-    WHERE ms2.member_id = m.member_id
-) AND ms.subscription_status = 'ACTIVE'
+WHERE ms.start_date = (SELECT MAX(ms2.start_date)FROM Member_Subscriptions ms2 WHERE ms2.member_id = m.member_id) 
+AND ms.subscription_status = 'ACTIVE'
 ORDER BY ms.start_date DESC;
-;
 
 -- 2) To identify the popularity rank of subscription plans in the entire history
 -- -------------------------------------------------------------------------------
