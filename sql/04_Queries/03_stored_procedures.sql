@@ -222,7 +222,8 @@ DELIMITER ;
  CREATE PROCEDURE MemberRegistration (
    IN p_first_name VARCHAR(100),IN p_last_name VARCHAR(100),
    IN p_email_id VARCHAR(150),IN p_password VARCHAR(50),
-   IN p_phone_no VARCHAR(20),IN p_date_of_birth DATE
+   IN p_phone_no VARCHAR(20),IN p_date_of_birth DATE,
+   OUT p_member_id INT
  )
   BEGIN
      IF EXISTS (SELECT 1 FROM Members WHERE email_id = p_email_id)
@@ -232,7 +233,11 @@ DELIMITER ;
      END IF;
     INSERT INTO Members (first_name, last_name, email_id, password, phone_no, date_of_birth)
     VALUES (p_first_name, p_last_name, p_email_id, p_password, p_phone_no, p_date_of_birth);
-    SELECT 'Registration successful' AS message,CONCAT(p_first_name, ' ', p_last_name) AS member_name;
+    SELECT member_id INTO p_member_id
+    FROM Members
+    WHERE email_id = p_email_id;
+    SELECT p_member_id AS member_id, 'Registration successful' AS message,
+    CONCAT(p_first_name, ' ', p_last_name) AS member_name;
   END //
 DELIMITER ;
 
@@ -242,19 +247,18 @@ DELIMITER ;
 
 DELIMITER //
 CREATE PROCEDURE MemberLogin (
-   IN p_email_id VARCHAR(150),IN p_password VARCHAR(50),OUT p_member_id INT
+   IN p_email_id VARCHAR(150),IN p_password VARCHAR(50)
 )
  BEGIN
-    SET p_member_id = NULL;
-    IF EXISTS (SELECT 1 FROM Members WHERE email_id = p_email_id AND password = p_password)
+    IF NOT EXISTS (SELECT 1 FROM Members WHERE email_id = p_email_id AND password = p_password)
     THEN
-    SET p_member_id = (SELECT member_id FROM Members WHERE email_id = p_email_id AND password = p_password);
-    SELECT member_id, 'Login successful, Welcome back' AS message, 
-    CONCAT (first_name, ' ', last_name) AS member_name;
-    ELSE
     SIGNAL SQLSTATE '45000'
     SET MESSAGE_TEXT = 'Invalid email ID or password!';
     END IF;
+    SELECT member_id, 'Login successful, Welcome back' AS message,
+    CONCAT(first_name, ' ', last_name) AS member_name
+    FROM Members
+    WHERE email_id = p_email_id AND password = p_password;
  END //
 DELIMITER ;
 
@@ -267,16 +271,15 @@ CREATE PROCEDURE ViewMemberDetails (
    IN p_member_id INT
 )
  BEGIN
-    IF EXISTS (SELECT 1 FROM Members WHERE member_id = p_member_id) THEN
-    SELECT first_name, last_name, email_id, phone_no, date_of_birth
-    FROM Members
-    WHERE member_id = p_member_id;
-    SELECT member_id, CONCAT (first_name, ' ', last_name) AS member_name, 
-    email_id, phone_no, date_of_birth, account_status,'Success' AS message;
-    ELSE
+    IF NOT EXISTS (SELECT 1 FROM Members WHERE member_id = p_member_id) THEN
     SIGNAL SQLSTATE '45000'
     SET MESSAGE_TEXT = 'Member not found!';
     END IF;
+    SELECT member_id, first_name, last_name,
+    CONCAT(first_name, ' ', last_name) AS member_name,
+    email_id, phone_no, date_of_birth, account_status, 'Success' AS message
+    FROM Members
+    WHERE member_id = p_member_id;
  END //
 DELIMITER ;
 
@@ -308,7 +311,7 @@ CREATE PROCEDURE AddSubscription (
     SET MESSAGE_TEXT = 'You have already chosen this subscription plan and it is pending!';
     END IF;
 
-    if not exists (SELECT 1 FROM Member_Subscriptions WHERE member_id = p_member_id AND plan_id = p_plan_id AND start_date = (
+    if exists (SELECT 1 FROM Member_Subscriptions WHERE member_id = p_member_id AND plan_id = p_plan_id AND start_date = (
         SELECT MAX(ms2.start_date)
         FROM Member_Subscriptions ms2
         WHERE ms2.member_id = p_member_id

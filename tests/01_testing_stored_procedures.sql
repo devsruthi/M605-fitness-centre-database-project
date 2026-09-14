@@ -34,24 +34,28 @@
 -- 6) Book Session
 -- 7) Respond to Session Update
 
+
+-- Before testing, set and initialise the member_id and subscription_id variables to NULL.
+
+-- 1. Member Registration
+
 SET @member_id = NULL;
 SET @subscription_id = NULL;
 
--- 1. Member Registration
-CALL MemberRegistration('Member1', 'Member1', 
-'member1@example.com', 'password123', '1234567890', '1990-01-01');
+CALL MemberRegistration('Member', 'test', 
+'member@example.com', 'password123', '1234567890', '1990-01-01', @member_id);
 
 -- 2. Member Login
-CALL MemberLogin('member1@example.com', 'password123', @member_id);
+CALL MemberLogin('member@example.com', 'password123');
 
 -- 3. View Member Details
 CALL ViewMemberDetails(@member_id);
 
-
 -- 4. Add Subscription Plan
+
 SELECT * FROM Subscription_Plans;
 
-CALL AddSubscription(@member_id, 1, @subscription_id); -- (member_id, plan_id, subscription_id )
+CALL AddSubscription(@member_id, 2, @subscription_id); -- (member_id, plan_id, subscription_id )
 
 SELECT @subscription_id;
 

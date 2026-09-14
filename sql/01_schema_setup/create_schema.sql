@@ -1,3 +1,4 @@
+
 CREATE SCHEMA fitness_centre_database;
 
 USE fitness_centre_database;
