@@ -4,16 +4,16 @@
 -- ======================== TRIGGERS TESTING ====================================
 
 
--- 1) check_member_age_before_insertion
---    (Member must be at least 16 (code rejects TIMESTAMPDIFF < 15))
+-- 1) Member age validation before member details insertion
+--    (member age must be >= 16)
 -- *****************************************************************
 
--- 1a) FAIL — too young
+-- FAIL — too young
 INSERT INTO Members (first_name, last_name, email_id, password, phone_no, date_of_birth, account_status)
 VALUES ('Young', 'Tester', 'trigger.young@example.com', 'Test@123', '1700000001', '2016-09-13', 'ACTIVE');
 
 
--- 1b) SUCCESS — adult
+-- SUCCESS — adult
 INSERT INTO Members (first_name, last_name, email_id, password, phone_no, date_of_birth, account_status)
 VALUES ('Adult', 'Tester', 'trigger.adult@example.com', 'Test@1234', '1700000002', '2000-01-15', 'ACTIVE');
 
@@ -22,7 +22,7 @@ FROM Members
 WHERE email_id = 'trigger.adult@example.com';
 
 
--- 2) log_member_details_insertion
+-- 2) Log member details after insertion
 --    (After a successful member insert, a copy is written to Member_Details_Log)
 -- ******************************************************************************
 
@@ -32,25 +32,27 @@ JOIN Member_Details_Log l ON l.member_id = m.member_id
 WHERE m.email_id = 'trigger.adult@example.com';
 
 
--- 3) Prevent session booking - only memebers with active subscription can book sessions
+-- 3) Prevent session booking - only memebers with active subscription currently can book sessions
 -- ************************************************************************************
 
 -- TEST DATA:
--- memeber id's with no active subscription - (11, 12, 18)
+-- memeber id's with no active subscription - (11, 12, 18, 20)
+-- memeber id's with active subscription - (1, 2,3,5,19, 21,30 etc)
 -- session id's - (34, 14, 3, 1)
 
-SELECT member_id, first_name, last_name
-FROM Members
-WHERE member_id IN (11, 12, 18);
-
-SELECT member_id, subscription_status, start_date
-FROM Member_Subscriptions
-WHERE member_id IN (11, 12, 18);
+SELECT m.member_id, m.first_name, m.last_name, ms.subscription_status
+FROM Members m
+JOIN Member_Subscriptions ms ON ms.member_id = m.member_id
+AND ms.start_date = (
+    SELECT MAX(ms2.start_date)
+    FROM Member_Subscriptions ms2
+    WHERE ms2.member_id = m.member_id
+)
+AND ms.subscription_status = 'ACTIVE';
 
 -- FAIL 
 INSERT INTO Bookings (member_id, session_id)
 VALUES (11, 34);
--- Expected: Member must have an active subscription plan to book sessions!
 
 -- SUCCESS 
 INSERT INTO Bookings (member_id, session_id)
@@ -67,7 +69,7 @@ WHERE member_id = 19 AND session_id = 34;
 SELECT booking_id, member_id, session_id, booking_status
 FROM Bookings
 WHERE member_id = 1 AND session_id = 1;
--- Expected: already 1 row from seed
+-- Expected: already 1 row exist
 
 -- FAIL
 INSERT INTO Bookings (member_id, session_id)
@@ -78,25 +80,35 @@ VALUES (1, 1);
 -- 5) Prevent session booking - when session reaches maximum capacity, no more bookings are allowed
 -- *************************************************************************************************
 
--- FAIL — member 6 has Premium (can take PT) but the seat is already taken
-INSERT INTO Bookings (member_id, session_id)
-VALUES (6, 3);
+-- FAIL — member 6 has Premium plan (plan includes PT session access) but the seat is already taken.
 
--- Expected: Session is at maximum capacity, no more bookings are allowed!
+SELECT s.session_id,s.session_date,st.service_type_name, count(b.booking_id) as booking_count, st.max_participants
+FROM Sessions s
+JOIN Bookings b ON b.session_id = s.session_id
+JOIN Service_Types st ON st.service_type_id = s.service_type_id
+WHERE s.session_id = 42 group by s.session_id;
+
+INSERT INTO Bookings (member_id, session_id)
+VALUES (6, 42);
 
 
 -- 6) check_pt_session_access_before_booking
 -- *********************************************
 
-SELECT member_id, plan_id, subscription_status
-FROM Member_Subscriptions
-WHERE member_id = 5 AND subscription_status = 'ACTIVE';
--- Expected: plan_id = 1 (Classic)
+-- member id's with PT access - (5, 2)
+
+SELECT ms.member_id, ms.plan_id, sp.plan_name, sp.personal_training_access, ms.subscription_status
+FROM Member_Subscriptions ms
+JOIN Subscription_Plans sp ON sp.plan_id = ms.plan_id
+WHERE ms.member_id = 5 AND ms.start_date = (
+            SELECT MAX(ms2.start_date)
+            FROM Member_Subscriptions ms2
+            WHERE ms2.member_id = 5
+        )  AND ms.subscription_status = 'ACTIVE';
 
 -- FAIL
 INSERT INTO Bookings (member_id, session_id)
 VALUES (5, 14);
--- Expected: Member subscription does not include Personal Training access!
 
 -- SUCCESS 
 INSERT INTO Bookings (member_id, session_id)

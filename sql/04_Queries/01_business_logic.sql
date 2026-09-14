@@ -22,7 +22,11 @@ JOIN Member_Subscriptions ms
 ON m.member_id = ms.member_id
 JOIN Subscription_Plans sp
 ON ms.plan_id = sp.plan_id
-WHERE ms.subscription_status = 'ACTIVE'
+WHERE ms.start_date = (
+    SELECT MAX(ms2.start_date)
+    FROM Member_Subscriptions ms2
+    WHERE ms2.member_id = m.member_id
+) AND ms.subscription_status = 'ACTIVE'
 ORDER BY ms.start_date DESC;
 ;
 
@@ -59,8 +63,13 @@ FROM Members m
 JOIN Member_Subscriptions ms
 ON m.member_id = ms.member_id
 JOIN Subscription_Plans sp
-ON sp.plan_id = ms.plan_id 
-WHERE  ms.subscription_status = 'ACTIVE' AND sp.personal_training_access = TRUE ;
+ON sp.plan_id = ms.plan_id
+WHERE ms.start_date = (
+    SELECT MAX(ms2.start_date)
+    FROM Member_Subscriptions ms2
+    WHERE ms2.member_id = m.member_id
+) AND ms.subscription_status = 'ACTIVE'
+AND sp.personal_training_access = TRUE ;
 
 
 -- 5) Find all members who have an ACTIVE account but currently don't have any ACTIVE subscription
@@ -81,10 +90,15 @@ WHERE m.account_status = 'ACTIVE'
 AND NOT EXISTS (
 SELECT 1
 FROM Member_Subscriptions ms
-WHERE m.member_id = ms.member_id AND ms.subscription_status = 'ACTIVE'
+WHERE m.member_id = ms.member_id AND ms.start_date = (
+    SELECT MAX(ms2.start_date)
+    FROM Member_Subscriptions ms2
+    WHERE ms2.member_id = m.member_id
+) AND ms.subscription_status = 'ACTIVE'
 );
 
--- 6) identify members who have an ACTIVE account but never subscribed to any subscription plans yet. 
+-- 6) identify members who have an ACTIVE account but never subscribed to any subscription plans yet 
+-- (no subscription history yet). 
 -- -----------------------------------------------------------------------------------------------------
 SELECT
 m.member_id,
@@ -108,7 +122,11 @@ JOIN Member_Subscriptions ms
 ON m.member_id = ms.member_id
 JOIN Subscription_Plans sp 
 ON sp.plan_id = ms.plan_id
-WHERE ms.subscription_status = 'ACTIVE'
+WHERE ms.start_date = (
+    SELECT MAX(ms2.start_date)
+    FROM Member_Subscriptions ms2
+    WHERE ms2.member_id = m.member_id
+) AND ms.subscription_status = 'ACTIVE'
 AND DATE_ADD(ms.start_date, INTERVAL sp.duration_in_months MONTH) >= CURDATE()
 AND DATE_ADD(ms.start_date, INTERVAL sp.duration_in_months MONTH) < DATE_ADD(CURDATE(), INTERVAL 7 DAY)
 ORDER BY DATE_ADD(ms.start_date, INTERVAL sp.duration_in_months MONTH);
@@ -376,6 +394,7 @@ ORDER BY total_cancelled_bookings DESC;
 -- *****************************************
 
 -- 1) booking history of a specific member
+-- (member_id = 1)
 -- ---------------------------------------------------------------------
 SELECT
 st.service_type_name, DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date,
@@ -396,7 +415,8 @@ WHERE m.member_id = 1 ORDER BY s.session_date DESC;
 
 SELECT
 b.booking_id,st.service_type_name,
-DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date, DATE_FORMAT(s.start_time, '%h:%i %p') AS start_time, session_mode,  b.booking_status
+DATE_FORMAT(s.session_date, '%b %d, %Y') AS session_date, 
+DATE_FORMAT(s.start_time, '%h:%i %p') AS start_time, session_mode,  b.booking_status
 FROM Members m
 JOIN Bookings b ON m.member_id = b.member_id
 JOIN Sessions s 

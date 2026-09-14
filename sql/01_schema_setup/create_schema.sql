@@ -1,6 +1,7 @@
-CREATE SCHEMA fitness_center_system;
 
-USE fitness_center_system;
+CREATE SCHEMA fitness_centre_database;
+
+USE fitness_centre_database;
 
 set sql_safe_updates = 0;
 

@@ -222,7 +222,8 @@ DELIMITER ;
  CREATE PROCEDURE MemberRegistration (
    IN p_first_name VARCHAR(100),IN p_last_name VARCHAR(100),
    IN p_email_id VARCHAR(150),IN p_password VARCHAR(50),
-   IN p_phone_no VARCHAR(20),IN p_date_of_birth DATE
+   IN p_phone_no VARCHAR(20),IN p_date_of_birth DATE,
+   OUT p_member_id INT
  )
   BEGIN
      IF EXISTS (SELECT 1 FROM Members WHERE email_id = p_email_id)
@@ -232,7 +233,11 @@ DELIMITER ;
      END IF;
     INSERT INTO Members (first_name, last_name, email_id, password, phone_no, date_of_birth)
     VALUES (p_first_name, p_last_name, p_email_id, p_password, p_phone_no, p_date_of_birth);
-    SELECT 'Registration successful' AS message,CONCAT(p_first_name, ' ', p_last_name) AS member_name;
+    SELECT member_id INTO p_member_id
+    FROM Members
+    WHERE email_id = p_email_id;
+    SELECT p_member_id AS member_id, 'Registration successful' AS message,
+    CONCAT(p_first_name, ' ', p_last_name) AS member_name;
   END //
 DELIMITER ;
 
@@ -242,19 +247,18 @@ DELIMITER ;
 
 DELIMITER //
 CREATE PROCEDURE MemberLogin (
-   IN p_email_id VARCHAR(150),IN p_password VARCHAR(50),OUT p_member_id INT
+   IN p_email_id VARCHAR(150),IN p_password VARCHAR(50)
 )
  BEGIN
-    SET p_member_id = NULL;
-    IF EXISTS (SELECT 1 FROM Members WHERE email_id = p_email_id AND password = p_password)
+    IF NOT EXISTS (SELECT 1 FROM Members WHERE email_id = p_email_id AND password = p_password)
     THEN
-    SET p_member_id = (SELECT member_id FROM Members WHERE email_id = p_email_id AND password = p_password);
-    SELECT member_id, 'Login successful, Welcome back' AS message, 
-    CONCAT (first_name, ' ', last_name) AS member_name;
-    ELSE
     SIGNAL SQLSTATE '45000'
     SET MESSAGE_TEXT = 'Invalid email ID or password!';
     END IF;
+    SELECT member_id, 'Login successful, Welcome back' AS message,
+    CONCAT(first_name, ' ', last_name) AS member_name
+    FROM Members
+    WHERE email_id = p_email_id AND password = p_password;
  END //
 DELIMITER ;
 
@@ -267,16 +271,15 @@ CREATE PROCEDURE ViewMemberDetails (
    IN p_member_id INT
 )
  BEGIN
-    IF EXISTS (SELECT 1 FROM Members WHERE member_id = p_member_id) THEN
-    SELECT first_name, last_name, email_id, phone_no, date_of_birth
-    FROM Members
-    WHERE member_id = p_member_id;
-    SELECT member_id, CONCAT (first_name, ' ', last_name) AS member_name, 
-    email_id, phone_no, date_of_birth, account_status,'Success' AS message;
-    ELSE
+    IF NOT EXISTS (SELECT 1 FROM Members WHERE member_id = p_member_id) THEN
     SIGNAL SQLSTATE '45000'
     SET MESSAGE_TEXT = 'Member not found!';
     END IF;
+    SELECT member_id, first_name, last_name,
+    CONCAT(first_name, ' ', last_name) AS member_name,
+    email_id, phone_no, date_of_birth, account_status, 'Success' AS message
+    FROM Members
+    WHERE member_id = p_member_id;
  END //
 DELIMITER ;
 
@@ -291,7 +294,7 @@ CREATE PROCEDURE AddSubscription (
   BEGIN
      SET p_subscription_id = NULL;
 
-    IF NOT EXISTS (SELECT 1 FROM Members WHERE member_id = p_member_id AND account_status = 'ACTIVE')
+    IF NOT EXISTS (SELECT 1 FROM Members WHERE member_id = p_member_id  AND account_status = 'ACTIVE')
     THEN
     SIGNAL SQLSTATE '45000'
     SET MESSAGE_TEXT = 'Member not found or not active!';
@@ -302,10 +305,20 @@ CREATE PROCEDURE AddSubscription (
     SET MESSAGE_TEXT = 'Subscription plan not found or not active!';
     END IF;
     IF EXISTS (SELECT 1 FROM Member_Subscriptions WHERE member_id = p_member_id 
-    AND plan_id = p_plan_id AND subscription_status in ('PENDING', 'ACTIVE'))
+    AND plan_id = p_plan_id AND subscription_status = 'PENDING')
     THEN
     SIGNAL SQLSTATE '45000'
-    SET MESSAGE_TEXT = 'You have already chosen this subscription plan and it is pending/active!';
+    SET MESSAGE_TEXT = 'You have already chosen this subscription plan and it is pending!';
+    END IF;
+
+    if exists (SELECT 1 FROM Member_Subscriptions WHERE member_id = p_member_id AND plan_id = p_plan_id AND start_date = (
+        SELECT MAX(ms2.start_date)
+        FROM Member_Subscriptions ms2
+        WHERE ms2.member_id = p_member_id
+    ) AND subscription_status = 'ACTIVE')
+    THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'You have already an active subscription for this plan!';
     END IF;
     INSERT INTO Member_Subscriptions (member_id, plan_id, start_date, subscription_status)
     VALUES (p_member_id, p_plan_id, null, 'PENDING');
@@ -342,10 +355,15 @@ BEGIN
     IF EXISTS (
         SELECT 1 FROM Member_Subscriptions
         WHERE subscription_id = p_subscription_id
+          AND start_date = (
+            SELECT MAX(ms2.start_date)
+            FROM Member_Subscriptions ms2
+            WHERE ms2.subscription_id = p_subscription_id
+          )
           AND subscription_status = 'ACTIVE'
     ) THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Subscription is already active.';
+        SET MESSAGE_TEXT = 'Subscription is already active for this plan.';
     END IF;
 
     IF NOT EXISTS (
@@ -420,7 +438,7 @@ CREATE PROCEDURE BookSession (IN p_member_id INT,IN p_session_id INT)
     INSERT INTO Bookings (member_id, session_id)
     VALUES (p_member_id, p_session_id);
     SET l_booking_id = LAST_INSERT_ID();
-    SELECT l_booking_id AS booking_id, member_id, p_session_id AS session_id, 'Congrats, you have successfully booked the session' AS success_message;
+    SELECT l_booking_id AS booking_id, p_member_id, p_session_id AS session_id, 'Congrats, you have successfully booked the session' AS success_message;
  END //
 DELIMITER ;
 
@@ -445,8 +463,8 @@ BEGIN
         SET MESSAGE_TEXT = 'Your response has already been recorded!';
     END IF;
 
-    INSERT INTO Session_updation_Responses (session_update_id, booking_id, response_status, response_reason)
-    VALUES (p_session_update_id, p_booking_id, p_response_status, p_response_reason);
+    INSERT INTO Session_updation_Responses (session_update_id, booking_id, response_status,response_created_at, response_reason)
+    VALUES (p_session_update_id, p_booking_id, p_response_status, NOW(), p_response_reason);
 
     IF p_response_status = 'DECLINED' THEN
         UPDATE Bookings SET booking_status = 'CANCELLED', booking_cancelled_time = NOW(), 
@@ -494,23 +512,25 @@ DELIMITER ;
 -- 7) Update Session
 -- --------------------------------------------------------------
 DELIMITER //
-CREATE PROCEDURE SessionUpdate (
-  IN p_session_id INT,
-  IN p_trainer_id INT,
-  IN p_session_date DATE,
-  IN p_start_time TIME,
-  IN p_session_room VARCHAR(100),
-  IN p_session_mode ENUM('ONLINE', 'OFFLINE'),
+CREATE PROCEDURE SessionUpdate (IN p_session_id INT,IN p_trainer_id INT,IN p_session_date DATE,IN p_start_time TIME,
+  IN p_session_room VARCHAR(100),IN p_session_mode ENUM('ONLINE', 'OFFLINE'),
   IN p_updation_type ENUM('TRAINER_CHANGED','TIME_CHANGED','ROOM_CHANGED','MODE_CHANGED','OTHER'),
-  IN p_updation_reason VARCHAR(250)
+  IN p_updation_reason VARCHAR(250),
+  OUT p_session_update_id INT
 )
 BEGIN
     DECLARE v_session_update_id INT;
+    DECLARE v_trainer_id INT;
+    DECLARE v_session_date DATE;
+    DECLARE v_start_time TIME;
+    DECLARE v_session_room VARCHAR(100);
+    DECLARE v_session_mode ENUM('ONLINE', 'OFFLINE');
+    SET p_session_update_id = NULL;
 
     IF NOT EXISTS (
         SELECT 1 FROM Sessions
-        WHERE session_id = p_session_id
-          AND session_status = 'SCHEDULED' AND session_date >= CURDATE() AND start_time >= CURTIME()
+        WHERE session_id = p_session_id AND session_status = 'SCHEDULED'
+          AND (session_date > CURDATE() OR (session_date = CURDATE() AND start_time >= CURTIME()))
     ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Scheduled session not found / Past session cannot be updated!';
@@ -525,22 +545,26 @@ BEGIN
         session_room = COALESCE(p_session_room, session_room),
         session_mode = COALESCE(p_session_mode, session_mode)
     WHERE session_id = p_session_id;
+    
+    SELECT trainer_id, session_date, start_time, session_room, session_mode
+    INTO v_trainer_id, v_session_date, v_start_time, v_session_room, v_session_mode
+    FROM Sessions
+    WHERE session_id = p_session_id;
 
-    -- Inserting into session updation table
     INSERT INTO Session_updations (
         session_id, trainer_id, session_date, start_time,
         session_room, session_mode, updation_type, updation_reason
     )
-    VALUES (p_session_id, p_trainer_id, p_session_date, p_start_time,
-    p_session_room, p_session_mode, p_updation_type, p_updation_reason);
+    VALUES (p_session_id,v_trainer_id,v_session_date,TIMESTAMP(v_session_date, v_start_time),COALESCE(v_session_room, 'ONLINE'),
+        v_session_mode,p_updation_type,p_updation_reason);
 
-    SET v_session_update_id = LAST_INSERT_ID();
+    SET p_session_update_id = LAST_INSERT_ID();
     COMMIT;
 
-    SELECT v_session_update_id AS session_update_id, p_session_id AS session_id, 
+    SELECT p_session_update_id AS session_update_id, p_session_id AS session_id,
     (SELECT COUNT(*) FROM Bookings WHERE session_id = p_session_id AND booking_status = 'BOOKED') AS affected_bookings_count,
-    p_update_type AS update_type, p_update_reason AS update_reason,
-           'Session updated successfully. Notification sent to booked members.' AS success_message;
+    p_updation_type AS update_type, p_updation_reason AS update_reason,
+           'Session updated successfully' AS success_message;
 END //
 DELIMITER ;
 
@@ -570,13 +594,6 @@ DELIMITER ;
 
 
 -- *********************************** SESSION IMPACT MODULE ************************************
--- Relevance: In a fitness club, last-minute session changes (trainer, time, room, mode)
--- often make booked members drop out. Empty seats, unused trainer hours and unhappy
--- members are a real operational cost. This module measures that impact so admin can
--- see which change types and services lose the most bookings, which sessions are
--- worst affected, and how many cancellations happened in a given month — and then
--- avoid the changes that hurt attendance the most.
-
 
 -- 1) Members session change declined rate by type of session change
 -- --------------------------------------------------------------

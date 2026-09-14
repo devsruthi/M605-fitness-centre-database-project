@@ -1,3 +1,4 @@
+
 CREATE TABLE Members (
     member_id INT AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
@@ -38,7 +39,7 @@ CREATE TABLE Member_Subscriptions (
     subscription_id INT AUTO_INCREMENT PRIMARY KEY,
     member_id INT NOT NULL,
     plan_id INT NOT NULL,
-    start_date DATE NOT NULL,
+    start_date DATE,
     subscription_status ENUM('PENDING', 'ACTIVE', 'EXPIRED', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
     FOREIGN KEY (member_id) REFERENCES Members (member_id),
     FOREIGN KEY (plan_id) REFERENCES Subscription_Plans (plan_id)
