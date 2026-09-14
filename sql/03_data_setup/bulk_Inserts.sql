@@ -1,6 +1,4 @@
-
--- Sample data
--- =============
+-- =========================== BULK INSERTs ==========================================
 
 -- MEMBERS (35)
 -- 11, 12 never subscribed | 4, 10, 18 no ACTIVE plan | 13, 20, 35 INACTIVE

@@ -463,8 +463,8 @@ BEGIN
         SET MESSAGE_TEXT = 'Your response has already been recorded!';
     END IF;
 
-    INSERT INTO Session_updation_Responses (session_update_id, booking_id, response_status, response_reason)
-    VALUES (p_session_update_id, p_booking_id, p_response_status, p_response_reason);
+    INSERT INTO Session_updation_Responses (session_update_id, booking_id, response_status,response_created_at, response_reason)
+    VALUES (p_session_update_id, p_booking_id, p_response_status, NOW(), p_response_reason);
 
     IF p_response_status = 'DECLINED' THEN
         UPDATE Bookings SET booking_status = 'CANCELLED', booking_cancelled_time = NOW(), 
@@ -512,23 +512,25 @@ DELIMITER ;
 -- 7) Update Session
 -- --------------------------------------------------------------
 DELIMITER //
-CREATE PROCEDURE SessionUpdate (
-  IN p_session_id INT,
-  IN p_trainer_id INT,
-  IN p_session_date DATE,
-  IN p_start_time TIME,
-  IN p_session_room VARCHAR(100),
-  IN p_session_mode ENUM('ONLINE', 'OFFLINE'),
+CREATE PROCEDURE SessionUpdate (IN p_session_id INT,IN p_trainer_id INT,IN p_session_date DATE,IN p_start_time TIME,
+  IN p_session_room VARCHAR(100),IN p_session_mode ENUM('ONLINE', 'OFFLINE'),
   IN p_updation_type ENUM('TRAINER_CHANGED','TIME_CHANGED','ROOM_CHANGED','MODE_CHANGED','OTHER'),
-  IN p_updation_reason VARCHAR(250)
+  IN p_updation_reason VARCHAR(250),
+  OUT p_session_update_id INT
 )
 BEGIN
     DECLARE v_session_update_id INT;
+    DECLARE v_trainer_id INT;
+    DECLARE v_session_date DATE;
+    DECLARE v_start_time TIME;
+    DECLARE v_session_room VARCHAR(100);
+    DECLARE v_session_mode ENUM('ONLINE', 'OFFLINE');
+    SET p_session_update_id = NULL;
 
     IF NOT EXISTS (
         SELECT 1 FROM Sessions
-        WHERE session_id = p_session_id
-          AND session_status = 'SCHEDULED' AND session_date >= CURDATE() AND start_time >= CURTIME()
+        WHERE session_id = p_session_id AND session_status = 'SCHEDULED'
+          AND (session_date > CURDATE() OR (session_date = CURDATE() AND start_time >= CURTIME()))
     ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Scheduled session not found / Past session cannot be updated!';
@@ -543,22 +545,26 @@ BEGIN
         session_room = COALESCE(p_session_room, session_room),
         session_mode = COALESCE(p_session_mode, session_mode)
     WHERE session_id = p_session_id;
+    
+    SELECT trainer_id, session_date, start_time, session_room, session_mode
+    INTO v_trainer_id, v_session_date, v_start_time, v_session_room, v_session_mode
+    FROM Sessions
+    WHERE session_id = p_session_id;
 
-    -- Inserting into session updation table
     INSERT INTO Session_updations (
         session_id, trainer_id, session_date, start_time,
         session_room, session_mode, updation_type, updation_reason
     )
-    VALUES (p_session_id, p_trainer_id, p_session_date, p_start_time,
-    p_session_room, p_session_mode, p_updation_type, p_updation_reason);
+    VALUES (p_session_id,v_trainer_id,v_session_date,TIMESTAMP(v_session_date, v_start_time),COALESCE(v_session_room, 'ONLINE'),
+        v_session_mode,p_updation_type,p_updation_reason);
 
-    SET v_session_update_id = LAST_INSERT_ID();
+    SET p_session_update_id = LAST_INSERT_ID();
     COMMIT;
 
-    SELECT v_session_update_id AS session_update_id, p_session_id AS session_id, 
+    SELECT p_session_update_id AS session_update_id, p_session_id AS session_id,
     (SELECT COUNT(*) FROM Bookings WHERE session_id = p_session_id AND booking_status = 'BOOKED') AS affected_bookings_count,
-    p_update_type AS update_type, p_update_reason AS update_reason,
-           'Session updated successfully. Notification sent to booked members.' AS success_message;
+    p_updation_type AS update_type, p_updation_reason AS update_reason,
+           'Session updated successfully' AS success_message;
 END //
 DELIMITER ;
 
@@ -588,13 +594,6 @@ DELIMITER ;
 
 
 -- *********************************** SESSION IMPACT MODULE ************************************
--- Relevance: In a fitness club, last-minute session changes (trainer, time, room, mode)
--- often make booked members drop out. Empty seats, unused trainer hours and unhappy
--- members are a real operational cost. This module measures that impact so admin can
--- see which change types and services lose the most bookings, which sessions are
--- worst affected, and how many cancellations happened in a given month — and then
--- avoid the changes that hurt attendance the most.
-
 
 -- 1) Members session change declined rate by type of session change
 -- --------------------------------------------------------------

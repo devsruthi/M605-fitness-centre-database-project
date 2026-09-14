@@ -67,37 +67,34 @@ SELECT * FROM Sessions;
 -- 6. Book a Session
 CALL BookSession(@member_id, 17); -- (member_id, session_id)
 
-
--- 7. Member responds to session updates
-  -- (Eg : Trainer changes)
-CALL SessionUpdateResponse(1, 7, 'ACCEPTED', 'Happy to continue with the new trainer changes.');
--- (session_update_id, booking_id, response_status, response_reason)
-
-
-
  -- 3) ADMIN FLOW
  -- ***********************************************
 
  -- 1. Cancel scheduled Session
- -- -----------------------
  CALL CancelSession(1); -- (session_id)
 
- -- 2. Update scheduled Session
- -- -----------------------
- CALL SessionUpdate(1,1, NULL, NULL, NULL,NULL, 'TRAINER_CHANGED','Current trainer is not available'); 
- -- (session_id, update_trainer, update_date, update_time, update_room, update_mode, update_type, update_reason)
-
- -- 3. Cancellesd Bookings Analysis
-  -- -----------------------
+ -- 2. Cancellesd Bookings Analysis
   CALL CanceledBookingsAnalysis();
-
 
 
 -- 4) SESSION IMPACT MODULE
 -- ***********************************************
 
+SET @session_id = 62;
+
+-- session update  (eg:changing trainer )
+ CALL SessionUpdate(@session_id,2, NULL, NULL, NULL,NULL, 'TRAINER_CHANGED','Current trainer is not available',@session_update_id); 
+ -- (session_id, update_trainer, update_date, update_time, update_room, update_mode, update_type, update_reason)
+
+ -- Member responds to session updates
+
+ SELECT * FROM Bookings WHERE session_id = @session_id AND booking_status = 'BOOKED';
+
+CALL SessionUpdateResponse(@session_update_id, 150, 'ACCEPTED', 'Happy to continue with the new trainer changes.');
+-- (session_update_id, booking_id, response_status, response_reason)
+
+
 CALL MostAffectedSessionsAnalysis();
--- 2. Declines by type of session change (TRAINER_CHANGED, TIME_CHANGED, ROOM_CHANGED, MODE_CHANGED, OTHER)
 CALL SessionChangeDeclinesByUpdationType();
 CALL SessionChangeDeclinesByService();
 CALL SessionChangeResponseDashboard();
