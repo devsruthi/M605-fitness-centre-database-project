@@ -11,7 +11,7 @@ SHOW INDEX FROM Sessions;
 EXPLAIN
 SELECT session_id, session_date, start_time, session_status
 FROM Sessions
-WHERE session_status = 'SCHEDULED' AND session_date >= CURDATE();
+WHERE session_date >= CURDATE();
   
 -- Step 2- create Index
 CREATE INDEX idx_sessions_date
@@ -21,7 +21,7 @@ ON Sessions (session_date);
 EXPLAIN
 SELECT session_id, session_date, start_time, session_status
 FROM Sessions
-WHERE session_status = 'SCHEDULED' AND session_date >= CURDATE();
+WHERE session_date >= CURDATE();
 
 SHOW INDEX FROM Sessions;
 
@@ -30,6 +30,6 @@ SHOW INDEX FROM Sessions;
 EXPLAIN
 SELECT session_id, session_date, start_time, session_status
 FROM Sessions FORCE INDEX (idx_sessions_date)
-WHERE session_status = 'SCHEDULED' AND session_date >= CURDATE();
+WHERE session_date >= CURDATE();
 
 

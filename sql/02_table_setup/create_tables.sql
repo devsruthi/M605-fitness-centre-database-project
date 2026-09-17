@@ -109,7 +109,7 @@ CREATE TABLE Bookings (
     booking_created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     booking_cancelled_time DATETIME,
     booking_cancelled_reason VARCHAR(250),
-    booking_cancelled_by ENUM('MEMBER','SYSTEM') NOT NULL DEFAULT 'SYSTEM',
+    booking_cancelled_by ENUM('MEMBER','SYSTEM'),
     booking_status ENUM ('BOOKED','CANCELLED') NOT NULL DEFAULT 'BOOKED',
     FOREIGN KEY(member_id) REFERENCES Members (member_id),
     FOREIGN KEY (session_id) REFERENCES Sessions (session_id),
