@@ -419,7 +419,11 @@ CREATE PROCEDURE BookSession (IN p_member_id INT,IN p_session_id INT)
 
  BEGIN
   DECLARE l_booking_id INT;
-
+    SELECT session_id
+    FROM Sessions
+    WHERE session_id = p_session_id
+    FOR UPDATE;
+    
     IF NOT EXISTS (SELECT 1 FROM Member_Subscriptions WHERE member_id = p_member_id AND subscription_status = 'ACTIVE')
     THEN
     SIGNAL SQLSTATE '45000'
