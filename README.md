@@ -31,6 +31,7 @@ Then use:
 
 ## Testing
 
+- `tests/00_test_data.sql` useful IDs from the seed data
 - `tests/01_testing_stored_procedures.sql` to test procedures
 - `tests/02_testing_triggers.sql` to test triggers
 - `tests/03_testing_indexes.sql` to test indexes
