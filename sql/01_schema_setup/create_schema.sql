@@ -1,3 +1,5 @@
+--  CREATE SCHEMA 
+-- *********************************************************************
 
 CREATE SCHEMA fitness_centre_database;
 

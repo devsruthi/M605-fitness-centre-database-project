@@ -1,6 +1,7 @@
 
 
--- ======================== BUSINESS LOGIC QUERIES ==========================================
+--  BUSINESS LOGIC QUERIES 
+-- ***********************************************************************************
 
 -- 1) MEMBERS & SUBSCRIPTION MANAGEMENT
 -- 2) PAYEMENT & HISTORY

@@ -1,6 +1,7 @@
 
 
--- =========================== SINGLE ROW INSERTs ==========================================
+--  SINGLE ROW INSERTs 
+-- ***********************************************
 
 -- 1) MEMBERS
 INSERT INTO Members (first_name, last_name, email_id, password, phone_no, date_of_birth, account_status, joining_date)

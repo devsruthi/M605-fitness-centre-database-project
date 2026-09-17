@@ -1,7 +1,8 @@
 
 
 
--- ======================== TRIGGERS TESTING ====================================
+--  TRIGGERS TESTING 
+-- *********************************************************************
 
 
 -- 1) Member age validation before member details insertion
