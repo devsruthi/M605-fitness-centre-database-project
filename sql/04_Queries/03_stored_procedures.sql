@@ -3,10 +3,11 @@
 -- STORED PROCEDURES
 -- ***********************************************************************************
 
--- 1) Analysis & Reports 
+-- 1) Analysis & Reports
 -- 2) Member Flow
 -- 3) Admin Flow
 -- 4) Session Impact Feature
+-- 5) Basic Operations
 
 -- ***************** ANALYSIS & REPORTS ***************************
 
@@ -498,7 +499,6 @@ CREATE PROCEDURE CancelSession (IN p_session_id INT)
     SIGNAL SQLSTATE '45000'
     SET MESSAGE_TEXT = 'Session cancellation failed!';
    END;
-
    START TRANSACTION;
     -- cancelling the session
     UPDATE Sessions SET session_status = 'CANCELLED', session_cancelled_time = CURDATE()
@@ -813,5 +813,124 @@ BEGIN
     ORDER BY b.booking_cancelled_time DESC;
 END //
 DELIMITER ;
+
+
+-- *********************************** BASIC OPERATIONS ************************************
+
+
+-- 1) Create trainer
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE CreateTrainer (
+    IN p_first_name VARCHAR(100),IN p_last_name VARCHAR(100),
+    IN p_email_id VARCHAR(150),IN p_phone_no VARCHAR(20),
+    IN p_city VARCHAR(100),IN p_total_experience_years INT
+)
+BEGIN
+    IF EXISTS (SELECT 1 FROM Trainers WHERE email_id = p_email_id)
+    THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Trainer email ID already exists!';
+    END IF;
+    INSERT INTO Trainers (first_name, last_name, email_id, phone_no, city, total_experience_years)
+    VALUES (p_first_name, p_last_name, p_email_id, p_phone_no, p_city, p_total_experience_years);
+    SET p_trainer_id = LAST_INSERT_ID();
+    SELECT p_trainer_id AS trainer_id, CONCAT(p_first_name, ' ', p_last_name) AS trainer_name,
+    'Trainer created successfully' AS success_message;
+END //
+DELIMITER ;
+
+
+-- 2) Create plan
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE CreatePlan (
+    IN p_plan_name VARCHAR(170),IN p_duration_in_months INT,
+    IN p_plan_price DECIMAL(15, 2),IN p_plan_description VARCHAR(250),
+    IN p_group_classes_access BOOLEAN,IN p_personal_training_access BOOLEAN,
+    IN p_exclusive_services BOOLEAN
+)
+BEGIN
+    IF EXISTS (SELECT 1 FROM Subscription_Plans WHERE plan_name = p_plan_name)
+    THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Plan name already exists!';
+    END IF;
+    INSERT INTO Subscription_Plans (
+        plan_name, duration_in_months, plan_price, plan_description,
+        group_classes_access, personal_training_access, exclusive_services
+    )
+    VALUES (
+        p_plan_name, p_duration_in_months, p_plan_price, p_plan_description,
+        p_group_classes_access, p_personal_training_access, p_exclusive_services
+    );
+    SET p_plan_id = LAST_INSERT_ID();
+    SELECT p_plan_id AS plan_id, p_plan_name AS plan_name,
+    'Subscription plan created successfully' AS success_message;
+END //
+DELIMITER ;
+
+
+-- 3) Create service type
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE CreateServiceType (
+    IN p_service_type_name VARCHAR(100),IN p_service_type_description VARCHAR(250),
+    IN p_service_mode ENUM('GROUP', 'PERSONAL'),IN p_max_participants INT
+)
+BEGIN
+    IF EXISTS (SELECT 1 FROM Service_Types WHERE service_type_name = p_service_type_name)
+    THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Service type name already exists!';
+    END IF;
+    INSERT INTO Service_Types (service_type_name, service_type_description, service_mode, max_participants)
+    VALUES (p_service_type_name, p_service_type_description, p_service_mode, p_max_participants);
+    SET p_service_type_id = LAST_INSERT_ID();
+    SELECT p_service_type_id AS service_type_id, p_service_type_name AS service_type_name,
+    'Service type created successfully' AS success_message;
+END //
+DELIMITER ;
+
+
+-- 4) Create session
+-- --------------------------------------------------------------
+DELIMITER //
+CREATE PROCEDURE CreateSession (
+    IN p_service_type_id INT,IN p_trainer_id INT,
+    IN p_session_date DATE,IN p_start_time TIME,
+    IN p_duration_in_minutes INT,IN p_session_mode ENUM('ONLINE', 'OFFLINE'),
+    IN p_session_room VARCHAR(100)
+)
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM Service_Types WHERE service_type_id = p_service_type_id AND service_type_status = 'ACTIVE')
+    THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Service type not found or not active!';
+    END IF;
+    IF EXISTS (SELECT 1 FROM Sessions WHERE session_date = p_session_date AND start_time = p_start_time)
+    THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Session already exists!';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Trainers WHERE trainer_id = p_trainer_id AND account_status = 'ACTIVE')
+    THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Trainer not found or not active!';
+    END IF;
+    INSERT INTO Sessions (
+        service_type_id, trainer_id, session_date, start_time,
+        duration_in_minutes, session_mode, session_room
+    )
+    VALUES (
+        p_service_type_id, p_trainer_id, p_session_date, p_start_time,
+        p_duration_in_minutes, p_session_mode, p_session_room
+    );
+    SET p_session_id = LAST_INSERT_ID();
+    SELECT p_session_id AS session_id, p_session_date AS session_date,
+    'Session created successfully' AS success_message;
+END //
+DELIMITER ;
+
 
 

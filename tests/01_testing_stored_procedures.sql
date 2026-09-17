@@ -4,14 +4,22 @@
 
 -- SECTIONS
 -- ***********
+-- 1) Basic Operations
+-- 2) ANALYSIS & REPORTS  
+-- 3) MEMBER FLOW
+-- 4) ADMIN FLOW
+-- 5) SESSION IMPACT MODULE
 
--- 1) ANALYSIS & REPORTS  
--- 2) MEMBER FLOW
--- 3) ADMIN FLOW
--- 4) Session Impact Module
 
+-- 1) BASIC OPERATIONS
+-- *********************************************
+CALL CreateTrainer('Basic', 'Trainer', 'basic.trainer@wellness.de', '491500000001', 'Berlin', 5);
+CALL CreatePlan('Student', 3, 49.99, 'Three-month student plan with group classes.', TRUE, FALSE, FALSE);
+CALL CreateServiceType('Morning Yoga', 'Easy group yoga class for beginners.', 'GROUP', 12);
+CALL CreateSession(1, 1, '2026-12-01', '08:00:00', 45, 'OFFLINE', 'Studio A');
+CALL BookSession(1, 1);
 
--- 1) ANALYSIS & REPORTS
+-- 2) ANALYSIS & REPORTS
 -- *********************************************
  CALL SubscriptionPlanPopularity();
  CALL ViewPaymentMethodPerformance();
@@ -25,7 +33,7 @@
  CALL FutureSessionsWithAvailablitity();
 
 
--- 2) MEMBER FLOW
+-- 3) MEMBER FLOW
 -- *********************************************
 -- 1) Member Registration
 -- 2) Member Login
@@ -35,8 +43,6 @@
 -- 6) Book Session
 -- 7) Respond to Session Update
 
-
--- Before testing, set and initialise the member_id and subscription_id variables to NULL.
 
 -- 1. Member Registration
 
@@ -78,7 +84,7 @@ CALL BookSession(@member_id, 17); -- (member_id, session_id)
   CALL CanceledBookingsAnalysis();
 
 
--- 4) SESSION IMPACT MODULE
+-- 5) SESSION IMPACT MODULE
 -- ***********************************************
 
 SET @session_id = 49;
@@ -91,8 +97,10 @@ SET @session_id = 49;
 
  SELECT * FROM Bookings WHERE session_id = @session_id AND booking_status = 'BOOKED';
 
-CALL SessionUpdateResponse(@session_update_id, 150, 'ACCEPTED', 'Happy to continue with the new trainer changes.');
+CALL SessionUpdateResponse(@session_update_id, 59, 'ACCEPTED', 'Happy to continue with the new trainer changes.');
 -- (session_update_id, booking_id, response_status, response_reason)
+
+SELECT * FROM Session_updation_Responses;
 
 
 CALL MostAffectedSessionsAnalysis();
@@ -104,3 +112,6 @@ CALL MostAffectedClientsAnalysis();
 CALL BookingsCancelledDueToSessionChange(9, 2026); -- (month, year)
 CALL BookingsCancelledDueToSessionChange(NULL, 2026); -- (year)
 CALL PendingSessionChangeResponses();
+
+
+
