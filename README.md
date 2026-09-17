@@ -27,11 +27,13 @@ Then use:
 - `sql/04_Queries/01_business_logic.sql` for SELECT queries
 - `sql/04_Queries/04_transactions.sql` for transactions
 - `sql/04_Queries/05_locks.sql` for locks
+- `sql/04_Queries/06_indexes.sql` for indexes
 
 ## Testing
 
 - `tests/01_testing_stored_procedures.sql` to test procedures
 - `tests/02_testing_triggers.sql` to test triggers
+- `tests/03_testing_indexes.sql` to test indexes
 
 ## Project folders
 
@@ -39,7 +41,7 @@ Then use:
 sql/01_schema_setup     create the database
 sql/02_table_setup      11 tables, keys and checks
 sql/03_data_setup       sample data (last updated 14 September 2026)
-sql/04_Queries          queries, procedures, triggers, transactions, locks
+sql/04_Queries          queries, procedures, triggers, transactions, locks, indexes
 tests                   test scripts
 docs                    ER diagram
 ```
@@ -51,5 +53,6 @@ docs                    ER diagram
 - Triggers (age check, booking rules, member log)
 - Transactions for purchase and session cancel
 - A lock for last-seat booking
+- Indexes for session search, payment reports, bookings and session-change replies
 
 ER diagram: `docs/ER_Diagram.png`
