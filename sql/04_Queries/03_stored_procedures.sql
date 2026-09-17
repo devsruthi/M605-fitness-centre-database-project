@@ -827,6 +827,7 @@ CREATE PROCEDURE CreateTrainer (
     IN p_city VARCHAR(100),IN p_total_experience_years INT
 )
 BEGIN
+    DECLARE v_trainer_id INT;
     IF EXISTS (SELECT 1 FROM Trainers WHERE email_id = p_email_id)
     THEN
     SIGNAL SQLSTATE '45000'
@@ -834,8 +835,8 @@ BEGIN
     END IF;
     INSERT INTO Trainers (first_name, last_name, email_id, phone_no, city, total_experience_years)
     VALUES (p_first_name, p_last_name, p_email_id, p_phone_no, p_city, p_total_experience_years);
-    SET p_trainer_id = LAST_INSERT_ID();
-    SELECT p_trainer_id AS trainer_id, CONCAT(p_first_name, ' ', p_last_name) AS trainer_name,
+    SET v_trainer_id = LAST_INSERT_ID();
+    SELECT v_trainer_id AS trainer_id, CONCAT(p_first_name, ' ', p_last_name) AS trainer_name,
     'Trainer created successfully' AS success_message;
 END //
 DELIMITER ;
@@ -851,6 +852,7 @@ CREATE PROCEDURE CreatePlan (
     IN p_exclusive_services BOOLEAN
 )
 BEGIN
+    DECLARE v_plan_id INT;
     IF EXISTS (SELECT 1 FROM Subscription_Plans WHERE plan_name = p_plan_name)
     THEN
     SIGNAL SQLSTATE '45000'
@@ -864,8 +866,8 @@ BEGIN
         p_plan_name, p_duration_in_months, p_plan_price, p_plan_description,
         p_group_classes_access, p_personal_training_access, p_exclusive_services
     );
-    SET p_plan_id = LAST_INSERT_ID();
-    SELECT p_plan_id AS plan_id, p_plan_name AS plan_name,
+    SET v_plan_id = LAST_INSERT_ID();
+    SELECT v_plan_id AS plan_id, p_plan_name AS plan_name,
     'Subscription plan created successfully' AS success_message;
 END //
 DELIMITER ;
@@ -879,6 +881,7 @@ CREATE PROCEDURE CreateServiceType (
     IN p_service_mode ENUM('GROUP', 'PERSONAL'),IN p_max_participants INT
 )
 BEGIN
+    DECLARE v_service_type_id INT;
     IF EXISTS (SELECT 1 FROM Service_Types WHERE service_type_name = p_service_type_name)
     THEN
     SIGNAL SQLSTATE '45000'
@@ -886,8 +889,8 @@ BEGIN
     END IF;
     INSERT INTO Service_Types (service_type_name, service_type_description, service_mode, max_participants)
     VALUES (p_service_type_name, p_service_type_description, p_service_mode, p_max_participants);
-    SET p_service_type_id = LAST_INSERT_ID();
-    SELECT p_service_type_id AS service_type_id, p_service_type_name AS service_type_name,
+    SET v_service_type_id = LAST_INSERT_ID();
+    SELECT v_service_type_id AS service_type_id, p_service_type_name AS service_type_name,
     'Service type created successfully' AS success_message;
 END //
 DELIMITER ;
@@ -903,6 +906,7 @@ CREATE PROCEDURE CreateSession (
     IN p_session_room VARCHAR(100)
 )
 BEGIN
+    DECLARE v_session_id INT;
     IF NOT EXISTS (SELECT 1 FROM Service_Types WHERE service_type_id = p_service_type_id AND service_type_status = 'ACTIVE')
     THEN
     SIGNAL SQLSTATE '45000'
@@ -926,8 +930,8 @@ BEGIN
         p_service_type_id, p_trainer_id, p_session_date, p_start_time,
         p_duration_in_minutes, p_session_mode, p_session_room
     );
-    SET p_session_id = LAST_INSERT_ID();
-    SELECT p_session_id AS session_id, p_session_date AS session_date,
+    SET v_session_id = LAST_INSERT_ID();
+    SELECT v_session_id AS session_id, p_session_date AS session_date,
     'Session created successfully' AS success_message;
 END //
 DELIMITER ;
