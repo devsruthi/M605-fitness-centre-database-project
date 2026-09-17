@@ -81,7 +81,7 @@ CALL BookSession(@member_id, 17); -- (member_id, session_id)
 -- 4) SESSION IMPACT MODULE
 -- ***********************************************
 
-SET @session_id = 62;
+SET @session_id = 49;
 
 -- session update  (eg:changing trainer )
  CALL SessionUpdate(@session_id,2, NULL, NULL, NULL,NULL, 'TRAINER_CHANGED','Current trainer is not available',@session_update_id); 

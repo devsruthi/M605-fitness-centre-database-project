@@ -37,12 +37,11 @@ VALUES ('Morning Stretch', 'Short group session for mobility and warm-up.', 'GRO
 -- 7) SESSIONS
 INSERT INTO Sessions (service_type_id, trainer_id, session_date, start_time, 
 duration_in_minutes, session_mode, session_room, session_cancelled_time, session_cancelled_reason, session_status)
-VALUES (1, 1, '2028-11-20', '07:30:00', 45, 'OFFLINE', 'Studio C', NULL, NULL, 'SCHEDULED');
+VALUES (1, 1, '2028-11-27', '08:30:00', 45, 'OFFLINE', 'Studio C', NULL, NULL, 'SCHEDULED');
 
 -- 8) BOOKINGS
-INSERT INTO Bookings (member_id, session_id, booking_created_time, booking_cancelled_time, booking_cancelled_reason,
- booking_cancelled_by, booking_status)
-VALUES (1, 1, '2026-09-14 10:00:00', NULL, NULL, 'SYSTEM', 'BOOKED');
+INSERT INTO Bookings (member_id, session_id, booking_created_time, booking_cancelled_time, booking_cancelled_reason, booking_status)
+VALUES (1, 1, '2026-09-14 10:00:00', NULL, NULL, 'BOOKED');
 
 -- 9) SESSION UPDATIONS
 INSERT INTO Session_updations (session_id, trainer_id, session_date, start_time, session_room, session_mode, 
