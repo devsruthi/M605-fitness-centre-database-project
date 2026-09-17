@@ -498,7 +498,6 @@ CREATE PROCEDURE CancelSession (IN p_session_id INT)
     SIGNAL SQLSTATE '45000'
     SET MESSAGE_TEXT = 'Session cancellation failed!';
    END;
-
    START TRANSACTION;
     -- cancelling the session
     UPDATE Sessions SET session_status = 'CANCELLED', session_cancelled_time = CURDATE()

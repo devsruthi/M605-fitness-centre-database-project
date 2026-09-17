@@ -36,7 +36,6 @@
 -- 7) Respond to Session Update
 
 
--- Before testing, set and initialise the member_id and subscription_id variables to NULL.
 
 -- 1. Member Registration
 
@@ -91,8 +90,10 @@ SET @session_id = 49;
 
  SELECT * FROM Bookings WHERE session_id = @session_id AND booking_status = 'BOOKED';
 
-CALL SessionUpdateResponse(@session_update_id, 150, 'ACCEPTED', 'Happy to continue with the new trainer changes.');
+CALL SessionUpdateResponse(@session_update_id, 59, 'ACCEPTED', 'Happy to continue with the new trainer changes.');
 -- (session_update_id, booking_id, response_status, response_reason)
+
+SELECT * FROM Session_updation_Responses;
 
 
 CALL MostAffectedSessionsAnalysis();
