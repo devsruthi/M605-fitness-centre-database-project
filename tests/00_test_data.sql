@@ -1,6 +1,6 @@
 
 -- ======================== TEST DATA ========================
-
+-- PT = Personal Training
 
 -- PLANS
 -- ids: 1, 2, 3

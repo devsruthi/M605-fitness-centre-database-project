@@ -1,8 +1,6 @@
 -- =========================== BULK INSERTs ==========================================
 
 -- MEMBERS (35)
--- 11, 12 never subscribed | 4, 10, 18 no ACTIVE plan | 13, 20, 35 INACTIVE
--- 31–34 ACTIVE account, PENDING subscription only (no payment)
 -- =====================================================================
 INSERT INTO Members (first_name, last_name, email_id, password, phone_no, date_of_birth, account_status, joining_date)
 VALUES
@@ -63,7 +61,6 @@ VALUES
 
 
 -- MEMBER SUBSCRIPTIONS (38)
--- 31–34 PENDING (chose a plan, not paid) | 35 no subscription
 -- =====================================================================
 INSERT INTO Member_Subscriptions (member_id, plan_id, start_date, subscription_status)
 VALUES
@@ -312,7 +309,6 @@ VALUES
 (6, 5, '2026-11-06', '09:30:00', 60, 'OFFLINE', 'Dance Studio', NULL, NULL, 'SCHEDULED');
 
 -- BOOKINGS (58)
--- Classic-only members are not booked on PERSONAL sessions (12, 13, 14)
 -- =====================================================================
 INSERT INTO Bookings (
     member_id, session_id, booking_created_time,
